@@ -1,1 +1,1 @@
-python for_win/main.py
+python bot/main.py
