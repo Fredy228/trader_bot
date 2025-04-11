@@ -1,7 +1,8 @@
 import MetaTrader5 as mt5
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from pprint import pprint
+import plotly.graph_objects as go
+import pandas as pd
+from datetime import datetime
 
 from common.connect import connect
 from common.account import output_account_info
@@ -24,22 +25,27 @@ swings = find_extremes(df=df)
 if DEBUG_MODE == 1: pprint(swings)
 
 print("\nTrend analysis...\n")
-hours_line, values_line = plot_trend(swings=swings)
+hours_line, values_line = plot_trend(swings=swings, candle={"high": df["high"][0], "low": df["low"][0]})
 
-if METATRADER_MODE == 0:
-    print("\nCreating graphic...\n")
-    fig, ax = plt.subplots()
+fig = go.Figure(data=[go.Candlestick(x=df['time'],
+                                     open=df['open'],
+                                     high=df['high'],
+                                     low=df['low'],
+                                     close=df['close'])])
 
-    ax.plot(hours_line, values_line)
-    ax.set_xticks(hours_line)
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+fig.add_trace(go.Scatter(
+    x=hours_line,
+    y=values_line,
+    mode="lines+markers",
+    name="Трендовая линия",
+    line=dict(color="red", width=2, dash="dash")
+))
 
-    fig.autofmt_xdate()
+fig.update_layout(title=f"Анализ тренда: {SYMBOL}",
+                  xaxis_title="Время",
+                  yaxis_title="Цена",
+                  xaxis_rangeslider_visible=True)
 
-    plt.xlabel("Hour")
-    plt.ylabel("Value")
-    plt.title(f"Анализ тренда: {SYMBOL}")
-    plt.grid()
-    plt.show()
+fig.show()
 
 mt5.shutdown()
