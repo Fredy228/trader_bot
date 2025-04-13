@@ -2,15 +2,20 @@ config.py (./bot/config.py)
 -------------------------------
 import MetaTrader5 as mt5
 
-DEBUG_MODE = 0
+# BASE SETTINGS
+DEBUG_MODE = 1  # 1 - on, 0 - off
+MODE = "prod"  # "test" or "prod"
 
+STRATEGY = 1
 SYMBOL = "EURUSD"
-TIMEFRAME = mt5.TIMEFRAME_H1
-BARS = 24
+TIMEFRAME = mt5.TIMEFRAME_M1
+BARS = 60
 
-LOGIN = 111111
-PASSWORD = "password"
-SERVER = "MetaQuotes-Demo"
+
+# TESTING SETTINGS
+
+
+# PRODUCTION SETTINGS
 -------------------------------
 Список доступных таймфреймов:
 
