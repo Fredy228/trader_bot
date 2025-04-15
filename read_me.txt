@@ -1,6 +1,7 @@
 config.py (./bot/config.py)
 -------------------------------
 import MetaTrader5 as mt5
+from datetime import datetime
 
 # BASE SETTINGS
 DEBUG_MODE = 1  # 1 - on, 0 - off
@@ -8,12 +9,12 @@ MODE = "prod"  # "test" or "prod"
 
 STRATEGY = 1
 SYMBOL = "EURUSD"
-TIMEFRAME = mt5.TIMEFRAME_M1
+TIMEFRAME = mt5.TIMEFRAME_H1
 BARS = 60
 
 
 # TESTING SETTINGS
-
+FROM_DATE = datetime(2025, 1, 1, 5, 0)  # YYYY, MM, DD, HH, MM
 
 # PRODUCTION SETTINGS
 -------------------------------
