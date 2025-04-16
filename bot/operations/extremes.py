@@ -6,7 +6,9 @@ def find_extremes(df):
     batch = 0
     direction = None
 
-    def add_swing(swing_type, level, open_price, close_price, count, start, end):
+    def add_swing(
+        swing_type, level, open_price, close_price, count, start, end, indexes=[]
+    ):
         swings.append(
             {
                 "type": swing_type,
@@ -16,10 +18,14 @@ def find_extremes(df):
                 "count_candles": count,
                 "time_start": start,
                 "time_end": end,
+                "indexes": indexes,
             }
         )
 
     for i, row in enumerate(df.itertuples(index=False)):
+        if i >= len(df) - 1:
+            break
+
         open_price = Decimal(str(row.open))
         close_price = Decimal(str(row.close))
         high = Decimal(str(row.high))
@@ -40,6 +46,7 @@ def find_extremes(df):
                         batch,
                         df.iloc[i - batch].time,
                         row.time,
+                        list(range(i - batch, i + 1)),
                     )
             elif direction == "DOWN":  # Change direction
                 levels = [Decimal(str(df.iloc[i - 1].low)), low]
@@ -59,9 +66,15 @@ def find_extremes(df):
                     batch,
                     df.iloc[i - batch].time,
                     df.iloc[i - 1].time,
+                    list(range(i - batch, i)),
                 )
 
                 direction, batch = "UP", 1
+
+                if is_last:
+                    add_swing(
+                        "UP", high, open_price, close_price, 1, row.time, row.time, [i]
+                    )
             else:  # Start
                 direction, batch = "UP", 1
 
@@ -77,6 +90,7 @@ def find_extremes(df):
                         batch,
                         df.iloc[i - batch].time,
                         row.time,
+                        list(range(i - batch, i + 1)),
                     )
             elif direction == "UP":  # Change direction
                 levels = [Decimal(str(df.iloc[i - 1].high)), high]
@@ -96,9 +110,15 @@ def find_extremes(df):
                     batch,
                     df.iloc[i - batch].time,
                     df.iloc[i - 1].time,
+                    list(range(i - batch, i)),
                 )
 
                 direction, batch = "DOWN", 1
+
+                if is_last:
+                    add_swing(
+                        "DOWN", low, open_price, close_price, 1, row.time, row.time, [i]
+                    )
             else:  # Start
                 direction, batch = "DOWN", 1
 
