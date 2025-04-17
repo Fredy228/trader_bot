@@ -2,10 +2,11 @@ config.py (./bot/config.py)
 -------------------------------
 import MetaTrader5 as mt5
 from datetime import datetime
+import pytz
 
 # BASE SETTINGS
 DEBUG_MODE = 1  # 1 - on, 0 - off
-MODE = "prod"  # "test" or "prod"
+MODE = "test"  # "test" or "prod"
 
 STRATEGY = 1
 SYMBOL = "EURUSD"
@@ -14,7 +15,9 @@ BARS = 60
 
 
 # TESTING SETTINGS
-FROM_DATE = datetime(2025, 1, 1, 5, 0)  # YYYY, MM, DD, HH, MM
+FROM_DATE = datetime(
+    2025, 3, 1, 0, 0, tzinfo=pytz.timezone("Etc/UTC")
+)  # YYYY, MM, DD, HH, MM
 
 # PRODUCTION SETTINGS
 -------------------------------

@@ -1,7 +1,6 @@
 order_table = """
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS order (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
-    age INTEGER
 )
 """
