@@ -15,6 +15,7 @@ BARS = 60
 
 
 # TESTING SETTINGS
+START_BALANCE = 100200
 FROM_DATE = datetime(
     2025, 3, 1, 0, 0, tzinfo=pytz.timezone("Etc/UTC")
 )  # YYYY, MM, DD, HH, MM
