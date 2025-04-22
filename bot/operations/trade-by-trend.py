@@ -1,26 +1,56 @@
 from decimal import Decimal
 
+from config import SYMBOL
+from operations.ticks import get_ticks
+
 deferred_orders = []
 active_orders = []
 canceled_orders = []
+closed_orders = []
 
 # df.iloc[i]
 
 
 def check_deferred_orders(candle):
-    global deferred_orders, active_orders, canceled_orders
-    for order in deferred_orders[:]:
-        curr_order = order.copy()
-        if order["type"] == "BUY":
-            if (
-                candle["high"] > order["level_up"]
-                and candle["low"] > order["level_middle"]
-            ):  # Cancel order
-                deferred_orders.remove(order)
-                curr_order["time"] = candle["time"]
-                canceled_orders.append(curr_order)
-        elif order["type"] == "SELL":
-            print("SELL")
+    global deferred_orders, active_orders, canceled_orders, closed_orders
+
+    ticks = get_ticks(SYMBOL, candle["time"])
+
+    for i, tick in enumerate(ticks.itertuples(index=False)):
+        tick_bid = Decimal(str(tick.bid))
+        tick_ask = Decimal(str(tick.ask))
+
+        for order in deferred_orders[:]:
+            curr_order = order.copy()
+            curr_order["time"] = candle["time"]
+
+            if order["type"] == "BUY":
+                if tick_bid > order["level_up"]:  # Cancel order
+                    canceled_orders.append(curr_order)
+                    deferred_orders.remove(order)
+
+                if tick_bid <= order["level_middle"]:  # Open order
+                    active_orders.append(curr_order)
+                    deferred_orders.remove(order)
+
+            elif order["type"] == "SELL":
+                if tick_ask < order["level_down"]:  # Cancel order
+                    canceled_orders.append(curr_order)
+                    deferred_orders.remove(order)
+
+                if tick_ask >= order["level_middle"]:  # Open order
+                    active_orders.append(curr_order)
+                    deferred_orders.remove(order)
+
+        for order in active_orders[:]:
+            curr_order = order.copy()
+            curr_order["time"] = candle["time"]
+
+            if order["type"] == "BUY":
+                print("")
+
+            elif order["type"] == "SELL":
+                print("")
 
 
 def trade_by_trend_test(swings, df):
