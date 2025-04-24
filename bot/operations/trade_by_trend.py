@@ -8,13 +8,14 @@ active_orders = []
 canceled_orders = []
 closed_orders = []
 
-# df.iloc[i]
 
-
-def check_deferred_orders(candle):
+def check_orders(candle, prev_time):
     global deferred_orders, active_orders, canceled_orders, closed_orders
 
-    ticks = get_ticks(SYMBOL, candle["time"])
+    if len(deferred_orders) == 0 and len(active_orders) == 0:
+        return
+
+    ticks = get_ticks(SYMBOL, candle["time"], prev_time)
 
     for i, tick in enumerate(ticks.itertuples(index=False)):
         tick_bid = Decimal(str(tick.bid))
@@ -26,19 +27,27 @@ def check_deferred_orders(candle):
 
             if order["type"] == "BUY":
                 if tick_bid > order["level_up"]:  # Cancel order
+                    print("cancel order buy")
+                    curr_order["price"] = tick_bid
                     canceled_orders.append(curr_order)
                     deferred_orders.remove(order)
 
                 if tick_bid <= order["level_middle"]:  # Open order
+                    print("open order buy")
+                    curr_order["price"] = tick_bid
                     active_orders.append(curr_order)
                     deferred_orders.remove(order)
 
             elif order["type"] == "SELL":
                 if tick_ask < order["level_down"]:  # Cancel order
+                    print("cancel order sell")
+                    curr_order["price"] = tick_ask
                     canceled_orders.append(curr_order)
                     deferred_orders.remove(order)
 
                 if tick_ask >= order["level_middle"]:  # Open order
+                    print("open order sell")
+                    curr_order["price"] = tick_ask
                     active_orders.append(curr_order)
                     deferred_orders.remove(order)
 
@@ -47,10 +56,30 @@ def check_deferred_orders(candle):
             curr_order["time"] = candle["time"]
 
             if order["type"] == "BUY":
-                print("")
+                if tick_bid < order["level_down"]:  # Stop loss
+                    curr_order["profit"] = False
+                    curr_order["price"] = tick_bid
+                    closed_orders.append(curr_order)
+                    active_orders.remove(order)
+
+                if tick_bid >= order["level_up"]:  # Take profit
+                    curr_order["profit"] = True
+                    curr_order["price"] = tick_bid
+                    closed_orders.append(curr_order)
+                    active_orders.remove(order)
 
             elif order["type"] == "SELL":
-                print("")
+                if tick_ask > order["level_up"]:  # Stop loss
+                    curr_order["profit"] = False
+                    curr_order["price"] = tick_ask
+                    closed_orders.append(curr_order)
+                    active_orders.remove(order)
+
+                if tick_ask <= order["level_down"]:  # Take profit
+                    curr_order["profit"] = True
+                    curr_order["price"] = tick_ask
+                    closed_orders.append(curr_order)
+                    active_orders.remove(order)
 
 
 def trade_by_trend_test(swings, df):
@@ -58,17 +87,18 @@ def trade_by_trend_test(swings, df):
     level_down = 0
     time_line = []
     values_line = []
+    broke_idx = None
 
     if len(swings) < 2:
         return
 
-    for i in range(0, len(swings) - 1):
+    for i in range(0, len(swings)):
         curr_level = swings[i]["level"]
         curr_time_start = swings[i]["time_start"]
         curr_time_end = swings[i]["time_end"]
-        curr_batch = swings[i]["bacth"]
-        curr_indexes = swings[i]["indexes"]
         is_up = swings[i]["type"] == "UP"
+
+        check_orders(df.iloc[len(df) - 1], df.iloc[len(df) - 2]["time"])
 
         if i == 0:  # fist el
             if is_up:
@@ -91,9 +121,12 @@ def trade_by_trend_test(swings, df):
             if swings[i]["count_candles"] == 2 or (
                 swings[i]["count_candles"] == 1 and swings[i - 1]["count_candles"] >= 2
             ):
-                level_middle = level_down + (level_up - level_down) * Decimal("0.5")
-                if swings[i]["type"] == "UP":  # SWING LOW
-                    if swings[i - 1]["level"] < level_down:  # Price broke line DOWN
+                # print(f"curr_idx: {i}, broke_idx: {broke_idx}")
+                if broke_idx == i - 1:
+                    level_middle = level_down + (level_up - level_down) * Decimal("0.5")
+                    # print("level_middle:", level_middle)
+
+                    if swings[i]["type"] == "UP":  # SWING LOW
                         deferred_orders.append(
                             {
                                 "type": "SELL",
@@ -103,9 +136,9 @@ def trade_by_trend_test(swings, df):
                                 "time": curr_time_end,
                             }
                         )
-                        print()
-                else:  # SWING HIGH
-                    if swings[i - 1]["level"] > level_up:  # Price broke line UP
+                        print("deferred order sell")
+
+                    else:  # SWING HIGH
                         deferred_orders.append(
                             {
                                 "type": "BUY",
@@ -115,7 +148,7 @@ def trade_by_trend_test(swings, df):
                                 "time": curr_time_end,
                             }
                         )
-                        print()
+                        print("deferred order buy")
 
         else:  # middle el
             if is_up:  # UP
@@ -124,9 +157,19 @@ def trade_by_trend_test(swings, df):
                     values_line.append(curr_level)
                     level_up = curr_level
                     level_down = swings[i - 1]["level"]
+                    broke_idx = i
+                    # print("UP: ", i)
             else:  # DOWN
                 if level_down == 0 or level_down > curr_level:  # Price broke line DOWN
                     time_line.append(curr_time_end)
                     values_line.append(curr_level)
                     level_down = curr_level
                     level_up = swings[i - 1]["level"]
+                    broke_idx = i
+                    # print("DOWN: ", i)
+
+
+def get_orders():
+    global canceled_orders, closed_orders
+
+    return canceled_orders, closed_orders

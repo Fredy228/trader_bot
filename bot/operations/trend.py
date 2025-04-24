@@ -14,13 +14,17 @@ def plot_trend(swings, candle):
         if i == 0:  # fist el
             if is_up:
                 level_up = curr_level
-                values_line.append(candle["low"] if swing["count_candles"] > 1 else candle["high"])
+                values_line.append(
+                    candle["low"] if swing["count_candles"] > 1 else candle["high"]
+                )
 
             else:
                 level_down = curr_level
-                values_line.append(candle["high"] if swing["count_candles"] > 1 else candle["low"])
+                values_line.append(
+                    candle["high"] if swing["count_candles"] > 1 else candle["low"]
+                )
 
-            time_line.append(curr_time_start)
+            time_line.append(candle["time"])
         elif i == len(swings) - 1:  # last el
             time_line.append(curr_time_end)
             values_line.append(curr_level)
@@ -39,6 +43,7 @@ def plot_trend(swings, candle):
                     level_up = swings[i - 1]["level"]
 
     return time_line, values_line
+
 
 #    new_trend = "UP \u2191"
 #    new_trend = "DOWN \u2193"
