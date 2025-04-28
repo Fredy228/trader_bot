@@ -5,14 +5,12 @@ from datetime import datetime
 import pytz
 
 # BASE SETTINGS
-DEBUG_MODE = 1  # 1 - on, 0 - off
+DEBUG_MODE = 0  # 1 - on, 0 - off
 MODE = "test"  # "test" or "prod"
 
 STRATEGY = 1
 SYMBOL = "EURUSD"
 TIMEFRAME = mt5.TIMEFRAME_H1
-BARS = 60
-
 
 # TESTING SETTINGS
 START_BALANCE = 100200
@@ -21,6 +19,7 @@ FROM_DATE = datetime(
 )  # YYYY, MM, DD, HH, MM
 
 # PRODUCTION SETTINGS
+BARS = 60
 -------------------------------
 Список доступных таймфреймов:
 

@@ -17,7 +17,7 @@ def test_strategy_1():
         print("candles:\n", df)
 
     print("\nИдет торговля...\n")
-    for i in range(2, len(df)):
+    for i in range(5, len(df)):
         gap = df[0 : i + 1] if i <= 60 else df[i - 60 : i + 1]
         gap = gap.reset_index(drop=True)
 
@@ -28,13 +28,17 @@ def test_strategy_1():
         # print(gap.iloc[len(gap) - 1])
 
     print("\nИдет постройка графика...\n")
-    canceled_orders, closed_orders = get_orders()
+    canceled_orders, closed_orders, opened_orders, start_deferre_orders = get_orders()
 
-    print("\nЗакрытые ордера:\n")
-    pprint(closed_orders)
+    if DEBUG_MODE == 1:
+        print("\Точка открытия ордера:\n")
+        pprint(opened_orders)
 
-    print("\nОтмененные ордера:\n")
-    pprint(canceled_orders)
+        print("\nЗакрытые ордера:\n")
+        pprint(closed_orders)
+
+        print("\nОтмененные ордера:\n")
+        pprint(canceled_orders)
 
     hours_line, values_line = plot_trend(
         swings=swings,
@@ -63,6 +67,54 @@ def test_strategy_1():
         )
     )
 
+    for trade in start_deferre_orders:
+        fig.add_trace(
+            go.Scatter(
+                x=[trade["time"]],
+                y=[trade["price"]],
+                mode="markers",
+                marker=dict(
+                    color="rgb(128, 0, 128)",
+                    size=14,
+                    symbol="square",
+                    line=dict(width=1, color="black"),
+                ),
+                name=f"Отложенно: {trade['name']}",
+                hovertext=(
+                    f"Отложенно: {trade['name']}<br>"
+                    f"value: {trade['price']}<br>"
+                    f"level_up: {trade['level_up']}<br>"
+                    f"level_down: {trade['level_down']}<br>"
+                    f"time: {trade['time']}<br>"
+                ),
+                hoverinfo="text",
+            )
+        )
+
+    for trade in opened_orders:
+        fig.add_trace(
+            go.Scatter(
+                x=[trade["time"]],
+                y=[trade["price"]],
+                mode="markers",
+                marker=dict(
+                    color="orange",
+                    size=14,
+                    symbol="arrow-bar-right",
+                    line=dict(width=1, color="black"),
+                ),
+                name=f"Открыто: {trade['name']}",
+                hovertext=(
+                    f"Открыто: {trade['name']}<br>"
+                    f"value: {trade['price']}<br>"
+                    f"level_up: {trade['level_up']}<br>"
+                    f"level_down: {trade['level_down']}<br>"
+                    f"time: {trade['time']}<br>"
+                ),
+                hoverinfo="text",
+            )
+        )
+
     for trade in closed_orders:
         fig.add_trace(
             go.Scatter(
@@ -75,7 +127,21 @@ def test_strategy_1():
                     symbol="triangle-up" if trade["profit"] else "triangle-down",
                     line=dict(width=1, color="black"),
                 ),
-                name="Профит" if trade["profit"] else "Убыток",
+                name=(
+                    f"Профит: {trade["name"]}"
+                    if trade["profit"]
+                    else f"Убыток: {trade["name"]}"
+                ),
+                hovertext=(
+                    f"{ f"Профит: {trade["name"]}<br>"
+                    if trade["profit"]
+                    else f"Убыток: {trade["name"]}<br>"}"
+                    f"value: {trade['price']}<br>"
+                    f"level_up: {trade['level_up']}<br>"
+                    f"level_down: {trade['level_down']}<br>"
+                    f"time: {trade['time']}<br>"
+                ),
+                hoverinfo="text",
             )
         )
 
@@ -88,7 +154,15 @@ def test_strategy_1():
                 marker=dict(
                     color="blue", size=14, symbol="x", line=dict(width=1, color="black")
                 ),
-                name="Отменено",
+                name=f"Отменено: {trade['name']}",
+                hovertext=(
+                    f"Отменено: {trade['name']}<br>"
+                    f"value: {trade['price']}<br>"
+                    f"level_up: {trade['level_up']}<br>"
+                    f"level_down: {trade['level_down']}<br>"
+                    f"time: {trade['time']}<br>"
+                ),
+                hoverinfo="text",
             )
         )
 
