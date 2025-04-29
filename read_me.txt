@@ -13,9 +13,9 @@ SYMBOL = "EURUSD"
 TIMEFRAME = mt5.TIMEFRAME_H1
 
 # TESTING SETTINGS
-START_BALANCE = 100200
+START_BALANCE = 25000
 FROM_DATE = datetime(
-    2025, 3, 1, 0, 0, tzinfo=pytz.timezone("Etc/UTC")
+    2025, 4, 20, 0, 0, tzinfo=pytz.timezone("Etc/UTC")
 )  # YYYY, MM, DD, HH, MM
 
 # PRODUCTION SETTINGS

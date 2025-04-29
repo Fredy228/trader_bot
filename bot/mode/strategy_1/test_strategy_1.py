@@ -1,10 +1,13 @@
 from pprint import pprint
+import dash
+from dash import html, dcc
 import plotly.graph_objects as go
 
 from operations.candles import get_candles_from_date
 from operations.extremes import find_extremes
 from operations.trade_by_trend import trade_by_trend_test, get_orders
 from operations.trend import plot_trend
+from operations.transaction import get_balance, get_time_line_balance
 
 from config import SYMBOL, TIMEFRAME, FROM_DATE, DEBUG_MODE
 
@@ -173,6 +176,46 @@ def test_strategy_1():
         xaxis_rangeslider_visible=True,
     )
 
-    fig.show()
+    time_line_balabce, balance_line = get_time_line_balance()
 
-    print("\nГотово\n")
+    fig2 = go.Figure()
+
+    fig2.add_trace(
+        go.Scatter(
+            x=time_line_balabce,
+            y=balance_line,
+            mode="lines+markers",
+            name="Баланс",
+            line=dict(color="red", width=2, dash="solid"),
+            text=[
+                "Баланс на " + str(t) + " =  " + str(b)
+                for t, b in zip(time_line_balabce, balance_line)
+            ],
+            hoverinfo="text",
+        )
+    )
+
+    fig2.update_layout(
+        title=f"История баланса: {SYMBOL}",
+        xaxis_title="Время",
+        yaxis_title="Баланс",
+        xaxis_rangeslider_visible=True,
+    )
+
+    print(f"\nИтоговый баланс: {get_balance()}\n")
+
+    print("\nЗапуск сайта...\n")
+
+    app = dash.Dash(__name__)
+
+    app.layout = html.Div(
+        [
+            html.H1("Мои графики"),
+            html.Div(
+                [dcc.Graph(figure=fig), dcc.Graph(figure=fig2)],
+                style={"display": "flex", "flexDirection": "column", "gap": "20px"},
+            ),
+        ]
+    )
+
+    return app

@@ -27,8 +27,9 @@ if MODE == "prod":
     if __name__ == "__main__":
         app.run(debug=DEBUG_MODE == 1)
 elif MODE == "test":
-    test_strategy_1()
-    mt5.shutdown()
+    app = test_strategy_1()
+    if __name__ == "__main__":
+        app.run(debug=DEBUG_MODE == 1)
 else:
-    print("Ошибка: неверный режим работы. Укажите 'test' или 'prod'.")
+    print("\nОшибка: неверный режим работы. Укажите 'test' или 'prod'.\n")
     mt5.shutdown()

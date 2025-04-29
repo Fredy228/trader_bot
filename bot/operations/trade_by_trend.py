@@ -3,6 +3,7 @@ from decimal import Decimal
 from config import SYMBOL
 from operations.ticks import get_ticks
 from services.generate_id import generate_unique_id
+from operations.transaction import transaction_test
 
 deferred_orders = []
 active_orders = []
@@ -67,12 +68,16 @@ def check_orders(candle, prev_time):
                     curr_order["price"] = tick_bid
                     closed_orders.append(curr_order)
                     active_orders.remove(order)
+                    transaction_test(curr_order, order["price"])
+                    print("Stop loss order buy")
 
                 if tick_bid >= order["level_up"]:  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_bid
                     closed_orders.append(curr_order)
                     active_orders.remove(order)
+                    transaction_test(curr_order, order["price"])
+                    print("Take profit order buy")
 
             elif order["type"] == "SELL":
                 if tick_ask > order["level_up"]:  # Stop loss
@@ -80,12 +85,16 @@ def check_orders(candle, prev_time):
                     curr_order["price"] = tick_ask
                     closed_orders.append(curr_order)
                     active_orders.remove(order)
+                    transaction_test(curr_order, order["price"])
+                    print("Stop loss order sell")
 
                 if tick_ask <= order["level_down"]:  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_ask
                     closed_orders.append(curr_order)
                     active_orders.remove(order)
+                    transaction_test(curr_order, order["price"])
+                    print("Take profit order sell")
 
 
 def trade_by_trend_test(swings, df):
