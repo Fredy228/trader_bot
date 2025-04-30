@@ -2,6 +2,7 @@ import MetaTrader5 as mt5
 from decimal import Decimal, ROUND_HALF_UP
 
 from config import START_BALANCE, SYMBOL, DEBUG_MODE
+from services.round_decimal import round_decimal
 
 balance = Decimal(str(START_BALANCE))
 
@@ -21,7 +22,6 @@ def get_contract_size():
     if symbol_info is None:
         raise ValueError("Символ не найден.")
 
-    print(f"contract_size: {symbol_info.trade_contract_size}")
     trade_contract_size = Decimal(str(symbol_info.trade_contract_size))
 
     return trade_contract_size
@@ -33,17 +33,13 @@ def calc_lot(type="BUY", stop_loss=0, open_price=0):
     contract_size = get_contract_size()
 
     if type == "BUY":
-        points = (stop_loss - open_price) * contract_size
-        lot = points * (
-            (balance * Decimal("0.01")) / ((stop_loss - open_price) * contract_size)
-        )
+        lot = (balance * Decimal("0.01")) / ((open_price - stop_loss) * contract_size)
         return lot
+
     elif type == "SELL":
-        points = (open_price - stop_loss) * contract_size
-        lot = points * (
-            (balance * Decimal("0.01")) / ((open_price - stop_loss) * contract_size)
-        )
+        lot = (balance * Decimal("0.01")) / ((stop_loss - open_price) * contract_size)
         return lot
+
     else:
         raise ValueError("Не верный тип ордера. Используй 'BUY' или 'SELL'.")
 
@@ -51,15 +47,21 @@ def calc_lot(type="BUY", stop_loss=0, open_price=0):
 def transaction_test(order, open_price):
     global balance, balances_line, time_line
 
+    contract_size = get_contract_size()
+
     if order["type"] == "BUY":
         lot = calc_lot("BUY", order["level_down"], open_price)
-        amount = lot * (order["price"] - open_price)
+        points = (order["price"] - open_price) * contract_size
+        amount = round_decimal(lot) * round_decimal(points)
+        print(f"type: buy, amount: {amount}, lot: {lot}")
         balance += amount
         balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
         time_line.append(order["time"])
     elif order["type"] == "SELL":
         lot = calc_lot("SELL", order["level_up"], open_price)
-        amount = lot * (open_price - order["price"])
+        points = (open_price - order["price"]) * contract_size
+        amount = round_decimal(lot) * round_decimal(points)
+        print(f"type: sell, amount: {amount}, lot: {lot}")
         balance += amount
         balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
         time_line.append(order["time"])

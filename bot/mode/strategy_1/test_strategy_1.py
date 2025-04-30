@@ -174,6 +174,8 @@ def test_strategy_1():
         xaxis_title="Время",
         yaxis_title="Цена",
         xaxis_rangeslider_visible=True,
+        # dragmode="zoom",
+        # yaxis=dict(fixedrange=False),
     )
 
     time_line_balabce, balance_line = get_time_line_balance()
@@ -210,11 +212,13 @@ def test_strategy_1():
 
     app.layout = html.Div(
         [
-            html.H1("Мои графики"),
             html.Div(
-                [dcc.Graph(figure=fig), dcc.Graph(figure=fig2)],
+                [
+                    dcc.Graph(figure=fig, style={"height": "90vh", "width": "100%"}),
+                    dcc.Graph(figure=fig2, style={"height": "90vh", "width": "100%"}),
+                ],
                 style={"display": "flex", "flexDirection": "column", "gap": "20px"},
-            ),
+            )
         ]
     )
 
