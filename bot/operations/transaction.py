@@ -1,7 +1,7 @@
 import MetaTrader5 as mt5
 from decimal import Decimal, ROUND_HALF_UP
 
-from config import START_BALANCE, SYMBOL, DEBUG_MODE
+from config import START_BALANCE, SYMBOL, DEBUG_MODE, FROM_DATE
 from services.round_decimal import round_decimal
 
 balance = Decimal(str(START_BALANCE))
@@ -9,6 +9,9 @@ balance = Decimal(str(START_BALANCE))
 balances_line = []
 time_line = []
 trade_contract_size = None
+
+balances_line.append(Decimal(str(START_BALANCE)))
+time_line.append(FROM_DATE)
 
 
 def get_contract_size():
@@ -50,17 +53,17 @@ def transaction_test(order, open_price):
     contract_size = get_contract_size()
 
     if order["type"] == "BUY":
-        lot = calc_lot("BUY", order["level_down"], open_price)
+        lot = round_decimal(calc_lot("BUY", order["level_down"], open_price))
         points = (order["price"] - open_price) * contract_size
-        amount = round_decimal(lot) * round_decimal(points)
+        amount = lot * round_decimal(points)
         print(f"type: buy, amount: {amount}, lot: {lot}")
         balance += amount
         balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
         time_line.append(order["time"])
     elif order["type"] == "SELL":
-        lot = calc_lot("SELL", order["level_up"], open_price)
+        lot = round_decimal(calc_lot("SELL", order["level_up"], open_price))
         points = (open_price - order["price"]) * contract_size
-        amount = round_decimal(lot) * round_decimal(points)
+        amount = lot * round_decimal(points)
         print(f"type: sell, amount: {amount}, lot: {lot}")
         balance += amount
         balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))

@@ -11,6 +11,8 @@ from operations.transaction import get_balance, get_time_line_balance
 
 from config import SYMBOL, TIMEFRAME, FROM_DATE, DEBUG_MODE
 
+app = dash.Dash(__name__)
+
 
 def test_strategy_1():
 
@@ -207,8 +209,6 @@ def test_strategy_1():
     print(f"\nИтоговый баланс: {get_balance()}\n")
 
     print("\nЗапуск сайта...\n")
-
-    app = dash.Dash(__name__)
 
     app.layout = html.Div(
         [

@@ -24,7 +24,7 @@ def check_orders(candle, prev_time):
 
     for i, tick in enumerate(ticks.itertuples(index=False)):
         tick_bid = Decimal(str(tick.bid))
-        tick_ask = Decimal(str(tick.ask))
+        # tick_ask = Decimal(str(tick.ask))
 
         for order in deferred_orders[:]:
             curr_order = order.copy()
@@ -45,15 +45,15 @@ def check_orders(candle, prev_time):
                     deferred_orders.remove(order)
 
             elif order["type"] == "SELL":
-                if tick_ask < order["level_down"]:  # Cancel order
+                if tick_bid < order["level_down"]:  # Cancel order
                     print("cancel order sell")
-                    curr_order["price"] = tick_ask
+                    curr_order["price"] = tick_bid
                     canceled_orders.append(curr_order)
                     deferred_orders.remove(order)
 
-                if tick_ask >= order["level_middle"]:  # Open order
+                if tick_bid >= order["level_middle"]:  # Open order
                     print("open order sell")
-                    curr_order["price"] = tick_ask
+                    curr_order["price"] = tick_bid
                     active_orders.append(curr_order)
                     opened_orders.append(curr_order)
                     deferred_orders.remove(order)
@@ -80,17 +80,17 @@ def check_orders(candle, prev_time):
                     print("Take profit order buy")
 
             elif order["type"] == "SELL":
-                if tick_ask > order["level_up"]:  # Stop loss
+                if tick_bid > order["level_up"]:  # Stop loss
                     curr_order["profit"] = False
-                    curr_order["price"] = tick_ask
+                    curr_order["price"] = tick_bid
                     closed_orders.append(curr_order)
                     active_orders.remove(order)
                     transaction_test(curr_order, order["price"])
                     print("Stop loss order sell")
 
-                if tick_ask <= order["level_down"]:  # Take profit
+                if tick_bid <= order["level_down"]:  # Take profit
                     curr_order["profit"] = True
-                    curr_order["price"] = tick_ask
+                    curr_order["price"] = tick_bid
                     closed_orders.append(curr_order)
                     active_orders.remove(order)
                     transaction_test(curr_order, order["price"])
@@ -120,12 +120,14 @@ def trade_by_trend_test(swings, df):
 
         elif i == len(swings) - 1:  # last el
             # Logic for trade
-            global deferred_orders, start_deferre_orders
+            global deferred_orders, start_deferre_orders, active_orders
 
             if level_up == 0 or level_down == 0:
                 return
 
-            if swings[i]["count_candles"] == 2 or (
+            if (
+                swings[i]["count_candles"] == 2 and swings[i - 1]["count_candles"] == 1
+            ) or (
                 swings[i]["count_candles"] == 1 and swings[i - 1]["count_candles"] >= 2
             ):
                 # print(f"curr_idx: {i}, broke_idx: {broke_idx}")
@@ -134,7 +136,11 @@ def trade_by_trend_test(swings, df):
                     # print("level_middle:", level_middle)
 
                     if swings[i]["type"] == "UP":  # SWING LOW
-                        if any(item["type"] == "SELL" for item in deferred_orders):
+                        if (
+                            any(item["type"] == "SELL" for item in deferred_orders)
+                            or any(item["type"] == "SELL" for item in active_orders)
+                            or Decimal(str(df.iloc[len(df) - 2]["close"])) > level_up
+                        ):
                             return
 
                         def_ord = {
@@ -151,7 +157,11 @@ def trade_by_trend_test(swings, df):
                         print("deferred order sell")
 
                     else:  # SWING HIGH
-                        if any(item["type"] == "BUY" for item in deferred_orders):
+                        if (
+                            any(item["type"] == "BUY" for item in deferred_orders)
+                            or any(item["type"] == "BUY" for item in active_orders)
+                            or Decimal(str(df.iloc[len(df) - 2]["close"])) < level_down
+                        ):
                             return
 
                         def_ord = {
