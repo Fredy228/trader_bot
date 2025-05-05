@@ -1,3 +1,5 @@
+version - 1.0.1
+
 config.py (./bot/config.py)
 -------------------------------
 import MetaTrader5 as mt5

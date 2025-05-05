@@ -32,8 +32,7 @@ def test_strategy_1():
         swings = find_extremes(df=gap)
 
         trade_by_trend_test(swings, gap)
-
-        # print(gap.iloc[len(gap) - 1])
+        print(f"Прогрес {round((i / len_df) * 100)}%")
 
     print("\nЙде будування графіка...\n")
     canceled_orders, closed_orders, opened_orders, start_deferre_orders = get_orders()
@@ -204,13 +203,25 @@ def test_strategy_1():
             html.H1("Конфігурація", style={"textAlign": "center", "fontSize": 25}),
             html.Div(
                 [
-                    html.P(f"Символ: {SYMBOL}", style={"fontSize": 16}),
-                    html.P(f"Таймфрейм: {TIMEFRAME}", style={"fontSize": 16}),
-                    html.P(f"Дата старту: {FROM_DATE}", style={"fontSize": 16}),
                     html.P(
-                        f"Режим: {MODE}", style={"fontSize": 16, "marginBottom": "15px"}
+                        f"Символ: {SYMBOL}",
+                        style={"fontSize": 18, "margin": "0 0 5px 0"},
                     ),
-                    html.P(f"Кількість свічок: {len_df}", style={"fontSize": 16}),
+                    html.P(
+                        f"Таймфрейм: {TIMEFRAME}",
+                        style={"fontSize": 18, "margin": "0 0 5px 0"},
+                    ),
+                    html.P(
+                        f"Дата старту: {FROM_DATE}",
+                        style={"fontSize": 18, "margin": "0 0 5px 0"},
+                    ),
+                    html.P(
+                        f"Режим: {MODE}", style={"fontSize": 18, "margin": "0 0 15px 0"}
+                    ),
+                    html.P(
+                        f"Кількість свічок: {len_df}",
+                        style={"fontSize": 18, "margin": "0 0 5px 0"},
+                    ),
                 ],
                 style={
                     "display": "flex",
@@ -238,7 +249,7 @@ def test_strategy_1():
                 [
                     html.P(
                         f"Баланс: {START_BALANCE} => {get_balance()}",
-                        style={"fontSize": 16},
+                        style={"fontSize": 18, "margin": "0 0 5px 0"},
                     ),
                 ],
                 style={
