@@ -100,6 +100,7 @@ def check_orders(candle, prev_time):
 def trade_by_trend_test(swings, df):
     level_up = 0
     level_down = 0
+    current_trend = None
     broke_idx = None
 
     if len(swings) < 5:
@@ -184,14 +185,21 @@ def trade_by_trend_test(swings, df):
                 if level_up == 0 or level_up < curr_level:  # Price broke line UP
                     level_up = curr_level
                     level_down = swings[i - 1]["level"]
-                    broke_idx = i
-                    # print("UP: ", i)
+
+                    if current_trend == "DOWN":
+                        broke_idx = i
+
+                    current_trend = "UP"
+
             else:  # DOWN
                 if level_down == 0 or level_down > curr_level:  # Price broke line DOWN
                     level_down = curr_level
                     level_up = swings[i - 1]["level"]
-                    broke_idx = i
-                    # print("DOWN: ", i)
+
+                    if current_trend == "UP":
+                        broke_idx = i
+
+                    current_trend = "DOWN"
 
 
 def get_orders():

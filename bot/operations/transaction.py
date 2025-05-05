@@ -23,7 +23,7 @@ def get_contract_size():
     symbol_info = mt5.symbol_info(SYMBOL)
 
     if symbol_info is None:
-        raise ValueError("Символ не найден.")
+        raise ValueError("Символ не знайден.")
 
     trade_contract_size = Decimal(str(symbol_info.trade_contract_size))
 
@@ -44,7 +44,7 @@ def calc_lot(type="BUY", stop_loss=0, open_price=0):
         return lot
 
     else:
-        raise ValueError("Не верный тип ордера. Используй 'BUY' или 'SELL'.")
+        raise ValueError("Не вірний тип ордера. Використовуй 'BUY' или 'SELL'.")
 
 
 def transaction_test(order, open_price):
@@ -56,7 +56,7 @@ def transaction_test(order, open_price):
         lot = round_decimal(calc_lot("BUY", order["level_down"], open_price))
         points = (order["price"] - open_price) * contract_size
         amount = lot * round_decimal(points)
-        print(f"type: buy, amount: {amount}, lot: {lot}")
+        print(f"order: {order["name"]}, type: buy, amount: {amount}, lot: {lot}")
         balance += amount
         balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
         time_line.append(order["time"])
@@ -64,7 +64,7 @@ def transaction_test(order, open_price):
         lot = round_decimal(calc_lot("SELL", order["level_up"], open_price))
         points = (open_price - order["price"]) * contract_size
         amount = lot * round_decimal(points)
-        print(f"type: sell, amount: {amount}, lot: {lot}")
+        print(f"order: {order["name"]}, type: sell, amount: {amount}, lot: {lot}")
         balance += amount
         balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
         time_line.append(order["time"])

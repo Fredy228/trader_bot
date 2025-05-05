@@ -9,20 +9,23 @@ from operations.trade_by_trend import trade_by_trend_test, get_orders
 from operations.trend import plot_trend
 from operations.transaction import get_balance, get_time_line_balance
 
-from config import SYMBOL, TIMEFRAME, FROM_DATE, DEBUG_MODE
+from config import SYMBOL, TIMEFRAME, FROM_DATE, DEBUG_MODE, MODE, START_BALANCE
 
 app = dash.Dash(__name__)
 
 
 def test_strategy_1():
 
-    print("\nИдет получение данных...\n")
+    print("\nЙде отримання даних...\n")
     df = get_candles_from_date(SYMBOL, TIMEFRAME, FROM_DATE)
-    if DEBUG_MODE == 1:
-        print("candles:\n", df)
+    len_df = len(df)
+    if len_df == 0:
+        raise ValueError("Помилка. Не вдалось отримати свічки.")
 
-    print("\nИдет торговля...\n")
-    for i in range(5, len(df)):
+    print(f"Отримано {len_df} свічок\n")
+
+    print("\nЙде торгівля...\n")
+    for i in range(5, len_df):
         gap = df[0 : i + 1] if i <= 60 else df[i - 60 : i + 1]
         gap = gap.reset_index(drop=True)
 
@@ -32,18 +35,8 @@ def test_strategy_1():
 
         # print(gap.iloc[len(gap) - 1])
 
-    print("\nИдет постройка графика...\n")
+    print("\nЙде будування графіка...\n")
     canceled_orders, closed_orders, opened_orders, start_deferre_orders = get_orders()
-
-    if DEBUG_MODE == 1:
-        print("\Точка открытия ордера:\n")
-        pprint(opened_orders)
-
-        print("\nЗакрытые ордера:\n")
-        pprint(closed_orders)
-
-        print("\nОтмененные ордера:\n")
-        pprint(canceled_orders)
 
     hours_line, values_line = plot_trend(
         swings=swings,
@@ -67,7 +60,7 @@ def test_strategy_1():
             x=hours_line,
             y=values_line,
             mode="lines+markers",
-            name="Трендовая линия",
+            name="Трендова лінія",
             line=dict(color="yellow", width=2, dash="solid"),
         )
     )
@@ -84,13 +77,13 @@ def test_strategy_1():
                     symbol="square",
                     line=dict(width=1, color="black"),
                 ),
-                name=f"Отложенно: {trade['name']}",
+                name=f"Відкладено: {trade['name']}<br>",
                 hovertext=(
-                    f"Отложенно: {trade['name']}<br>"
-                    f"value: {trade['price']}<br>"
-                    f"level_up: {trade['level_up']}<br>"
-                    f"level_down: {trade['level_down']}<br>"
-                    f"time: {trade['time']}<br>"
+                    f"Відкладено: {trade['name']}<br>"
+                    f"Значення: {trade['price']}<br>"
+                    f"Верхня точка: {trade['level_up']}<br>"
+                    f"Нижня точка: {trade['level_down']}<br>"
+                    f"Час: {trade['time']}<br>"
                 ),
                 hoverinfo="text",
             )
@@ -108,13 +101,13 @@ def test_strategy_1():
                     symbol="arrow-bar-right",
                     line=dict(width=1, color="black"),
                 ),
-                name=f"Открыто: {trade['name']}",
+                name=f"Відкрито: {trade["name"]}<br>",
                 hovertext=(
-                    f"Открыто: {trade['name']}<br>"
-                    f"value: {trade['price']}<br>"
-                    f"level_up: {trade['level_up']}<br>"
-                    f"level_down: {trade['level_down']}<br>"
-                    f"time: {trade['time']}<br>"
+                    f"Відкрито: {trade['name']}<br>"
+                    f"Значення: {trade['price']}<br>"
+                    f"Верхня точка: {trade['level_up']}<br>"
+                    f"Нижня точка: {trade['level_down']}<br>"
+                    f"Час: {trade['time']}<br>"
                 ),
                 hoverinfo="text",
             )
@@ -132,19 +125,17 @@ def test_strategy_1():
                     symbol="triangle-up" if trade["profit"] else "triangle-down",
                     line=dict(width=1, color="black"),
                 ),
-                name=(
-                    f"Профит: {trade["name"]}"
+                name=f"{ f"Профіт: {trade["name"]}<br>"
                     if trade["profit"]
-                    else f"Убыток: {trade["name"]}"
-                ),
+                    else f"Збиток: {trade["name"]}<br>"}",
                 hovertext=(
-                    f"{ f"Профит: {trade["name"]}<br>"
+                    f"{ f"Профіт: {trade["name"]}<br>"
                     if trade["profit"]
-                    else f"Убыток: {trade["name"]}<br>"}"
-                    f"value: {trade['price']}<br>"
-                    f"level_up: {trade['level_up']}<br>"
-                    f"level_down: {trade['level_down']}<br>"
-                    f"time: {trade['time']}<br>"
+                    else f"Збиток: {trade["name"]}<br>"}"
+                    f"Значення: {trade['price']}<br>"
+                    f"Верхня точка: {trade['level_up']}<br>"
+                    f"Нижня точка: {trade['level_down']}<br>"
+                    f"Час: {trade['time']}<br>"
                 ),
                 hoverinfo="text",
             )
@@ -159,22 +150,22 @@ def test_strategy_1():
                 marker=dict(
                     color="blue", size=14, symbol="x", line=dict(width=1, color="black")
                 ),
-                name=f"Отменено: {trade['name']}",
+                name=f"Скасовано: {trade['name']}<br>",
                 hovertext=(
-                    f"Отменено: {trade['name']}<br>"
-                    f"value: {trade['price']}<br>"
-                    f"level_up: {trade['level_up']}<br>"
-                    f"level_down: {trade['level_down']}<br>"
-                    f"time: {trade['time']}<br>"
+                    f"Скасовано: {trade['name']}<br>"
+                    f"Значення: {trade['price']}<br>"
+                    f"Верхня точка: {trade['level_up']}<br>"
+                    f"Нижня точка: {trade['level_down']}<br>"
+                    f"Час: {trade['time']}<br>"
                 ),
                 hoverinfo="text",
             )
         )
 
     fig.update_layout(
-        title=f"Торговля: {SYMBOL}",
-        xaxis_title="Время",
-        yaxis_title="Цена",
+        title=f"Торгівля",
+        xaxis_title="Час",
+        yaxis_title="Ціна",
         xaxis_rangeslider_visible=True,
         # dragmode="zoom",
         # yaxis=dict(fixedrange=False),
@@ -200,25 +191,64 @@ def test_strategy_1():
     )
 
     fig2.update_layout(
-        title=f"История баланса: {SYMBOL}",
-        xaxis_title="Время",
+        title=f"Історія балансу",
+        xaxis_title="Час",
         yaxis_title="Баланс",
         xaxis_rangeslider_visible=True,
     )
 
-    print(f"\nИтоговый баланс: {get_balance()}\n")
-
-    print("\nЗапуск сайта...\n")
+    print("\nЗапуск вебсайту...\n")
 
     app.layout = html.Div(
         [
+            html.H1("Конфігурація", style={"textAlign": "center", "fontSize": 25}),
+            html.Div(
+                [
+                    html.P(f"Символ: {SYMBOL}", style={"fontSize": 16}),
+                    html.P(f"Таймфрейм: {TIMEFRAME}", style={"fontSize": 16}),
+                    html.P(f"Дата старту: {FROM_DATE}", style={"fontSize": 16}),
+                    html.P(
+                        f"Режим: {MODE}", style={"fontSize": 16, "marginBottom": "15px"}
+                    ),
+                    html.P(f"Кількість свічок: {len_df}", style={"fontSize": 16}),
+                ],
+                style={
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "alignItems": "flex-start",
+                    "gap": "10px",
+                    "marginBottom": "30px",
+                    "padding": " 0 30px",
+                },
+            ),
             html.Div(
                 [
                     dcc.Graph(figure=fig, style={"height": "90vh", "width": "100%"}),
                     dcc.Graph(figure=fig2, style={"height": "90vh", "width": "100%"}),
                 ],
-                style={"display": "flex", "flexDirection": "column", "gap": "20px"},
-            )
+                style={
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "gap": "20px",
+                    "marginBottom": "30px",
+                },
+            ),
+            html.H1("Підсумок", style={"textAlign": "center", "fontSize": 25}),
+            html.Div(
+                [
+                    html.P(
+                        f"Баланс: {START_BALANCE} => {get_balance()}",
+                        style={"fontSize": 16},
+                    ),
+                ],
+                style={
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "alignItems": "flex-start",
+                    "gap": "10px",
+                    "marginBottom": "30px",
+                },
+            ),
         ]
     )
 
