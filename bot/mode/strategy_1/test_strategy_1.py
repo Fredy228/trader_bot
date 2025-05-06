@@ -255,6 +255,7 @@ def test_strategy_1():
                     "alignItems": "flex-start",
                     "gap": "10px",
                     "marginBottom": "30px",
+                    "padding": " 0 30px",
                 },
             ),
         ]
