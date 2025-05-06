@@ -23,7 +23,7 @@ def get_contract_size():
     symbol_info = mt5.symbol_info(SYMBOL)
 
     if symbol_info is None:
-        raise ValueError("Символ не знайден.")
+        raise ValueError(f"Символ {SYMBOL} не знайден.")
 
     trade_contract_size = Decimal(str(symbol_info.trade_contract_size))
 
@@ -52,22 +52,30 @@ def transaction_test(order, open_price):
 
     contract_size = get_contract_size()
 
-    if order["type"] == "BUY":
-        lot = round_decimal(calc_lot("BUY", order["level_down"], open_price))
-        points = (order["price"] - open_price) * contract_size
-        amount = lot * round_decimal(points)
-        print(f"order: {order["name"]}, type: buy, amount: {amount}, lot: {lot}")
-        balance += amount
-        balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
-        time_line.append(order["time"])
-    elif order["type"] == "SELL":
-        lot = round_decimal(calc_lot("SELL", order["level_up"], open_price))
-        points = (open_price - order["price"]) * contract_size
-        amount = lot * round_decimal(points)
-        print(f"order: {order["name"]}, type: sell, amount: {amount}, lot: {lot}")
-        balance += amount
-        balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
-        time_line.append(order["time"])
+    try:
+        if order["type"] == "BUY":
+            lot = round_decimal(calc_lot("BUY", order["level_down"], open_price))
+            points = (order["price"] - open_price) * contract_size
+            amount = lot * round_decimal(points)
+            print(f"order: {order["name"]}, type: buy, amount: {amount}, lot: {lot}")
+            balance += amount
+            balances_line.append(
+                balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            )
+            time_line.append(order["time"])
+        elif order["type"] == "SELL":
+            lot = round_decimal(calc_lot("SELL", order["level_up"], open_price))
+            points = (open_price - order["price"]) * contract_size
+            amount = lot * round_decimal(points)
+            print(f"order: {order["name"]}, type: sell, amount: {amount}, lot: {lot}")
+            balance += amount
+            balances_line.append(
+                balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            )
+            time_line.append(order["time"])
+        return True
+    except:
+        return False
 
 
 def get_balance():

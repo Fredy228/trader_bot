@@ -22,9 +22,11 @@ def check_orders(candle, prev_time):
 
     ticks = get_ticks(SYMBOL, candle["time"], prev_time)
 
+    if ticks is None:
+        return
+
     for i, tick in enumerate(ticks.itertuples(index=False)):
         tick_bid = Decimal(str(tick.bid))
-        # tick_ask = Decimal(str(tick.ask))
 
         for order in deferred_orders[:]:
             curr_order = order.copy()
@@ -66,34 +68,47 @@ def check_orders(candle, prev_time):
                 if tick_bid < order["level_down"]:  # Stop loss
                     curr_order["profit"] = False
                     curr_order["price"] = tick_bid
-                    closed_orders.append(curr_order)
+                    is_success = transaction_test(curr_order, order["price"])
+                    if is_success:
+                        closed_orders.append(curr_order)
+                    else:
+                        canceled_orders.append(curr_order)
+
                     active_orders.remove(order)
-                    transaction_test(curr_order, order["price"])
                     print("Stop loss order buy")
 
                 if tick_bid >= order["level_up"]:  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_bid
-                    closed_orders.append(curr_order)
+                    is_success = transaction_test(curr_order, order["price"])
+                    if is_success:
+                        closed_orders.append(curr_order)
+                    else:
+                        canceled_orders.append(curr_order)
                     active_orders.remove(order)
-                    transaction_test(curr_order, order["price"])
                     print("Take profit order buy")
 
             elif order["type"] == "SELL":
                 if tick_bid > order["level_up"]:  # Stop loss
                     curr_order["profit"] = False
                     curr_order["price"] = tick_bid
-                    closed_orders.append(curr_order)
+                    is_success = transaction_test(curr_order, order["price"])
+                    if is_success:
+                        closed_orders.append(curr_order)
+                    else:
+                        canceled_orders.append(curr_order)
                     active_orders.remove(order)
-                    transaction_test(curr_order, order["price"])
                     print("Stop loss order sell")
 
                 if tick_bid <= order["level_down"]:  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_bid
-                    closed_orders.append(curr_order)
+                    is_success = transaction_test(curr_order, order["price"])
+                    if is_success:
+                        closed_orders.append(curr_order)
+                    else:
+                        canceled_orders.append(curr_order)
                     active_orders.remove(order)
-                    transaction_test(curr_order, order["price"])
                     print("Take profit order sell")
 
 

@@ -7,6 +7,10 @@ def get_ticks(symbol, time_from, time_prev, flags=mt5.COPY_TICKS_ALL):
     time_to = time_from + delta
     ticks = mt5.copy_ticks_range(symbol, time_from, time_to, flags)
 
+    if ticks is None or len(ticks) == 0:
+        print("\nНе вдалось отримати тіки.\n")
+        return None
+
     ticks_frame = pd.DataFrame(ticks)
     ticks_frame["time"] = pd.to_datetime(ticks_frame["time"], unit="s")
 

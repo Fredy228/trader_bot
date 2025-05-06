@@ -24,6 +24,9 @@ def get_candles_from_date(
     print("from_date:", from_date)
     print("date_now:", date_now)
     rates = mt5.copy_rates_range(currency, timeframe, from_date, date_now)
+    if rates is None or len(rates) == 0:
+        raise ValueError("Помилка. Не вдалось отримати свічки.")
+
     df = pd.DataFrame(rates)
     df["time"] = pd.to_datetime(df["time"], unit="s")
     df["open"] = df["open"].astype(str)

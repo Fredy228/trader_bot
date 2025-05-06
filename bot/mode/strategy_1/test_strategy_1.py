@@ -19,9 +19,6 @@ def test_strategy_1():
     print("\nЙде отримання даних...\n")
     df = get_candles_from_date(SYMBOL, TIMEFRAME, FROM_DATE)
     len_df = len(df)
-    if len_df == 0:
-        raise ValueError("Помилка. Не вдалось отримати свічки.")
-
     print(f"Отримано {len_df} свічок\n")
 
     print("\nЙде торгівля...\n")
