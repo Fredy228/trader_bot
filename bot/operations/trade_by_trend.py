@@ -1,9 +1,11 @@
 from decimal import Decimal
 
-from config import SYMBOL
 from operations.ticks import get_ticks
 from services.generate_id import generate_unique_id
 from operations.transaction import transaction_test
+from services.value_adjustment import value_adjustment
+
+from config import SYMBOL, TAKE_PROFIT_DEVIATION, STOP_LOSS_DEVIATION
 
 deferred_orders = []
 active_orders = []
@@ -65,7 +67,9 @@ def check_orders(candle, prev_time):
             curr_order["time"] = candle["time"]
 
             if order["type"] == "BUY":
-                if tick_bid < order["level_down"]:  # Stop loss
+                if tick_bid < value_adjustment(
+                    STOP_LOSS_DEVIATION, order["level_down"]
+                ):  # Stop loss
                     curr_order["profit"] = False
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
@@ -77,7 +81,9 @@ def check_orders(candle, prev_time):
                     active_orders.remove(order)
                     print("Stop loss order buy")
 
-                if tick_bid >= order["level_up"]:  # Take profit
+                if tick_bid >= value_adjustment(
+                    TAKE_PROFIT_DEVIATION, order["level_up"]
+                ):  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
@@ -89,7 +95,9 @@ def check_orders(candle, prev_time):
                     print("Take profit order buy")
 
             elif order["type"] == "SELL":
-                if tick_bid > order["level_up"]:  # Stop loss
+                if tick_bid > value_adjustment(
+                    STOP_LOSS_DEVIATION, order["level_up"], True
+                ):  # Stop loss
                     curr_order["profit"] = False
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
@@ -100,7 +108,9 @@ def check_orders(candle, prev_time):
                     active_orders.remove(order)
                     print("Stop loss order sell")
 
-                if tick_bid <= order["level_down"]:  # Take profit
+                if tick_bid <= value_adjustment(
+                    TAKE_PROFIT_DEVIATION, order["level_down"], True
+                ):  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
@@ -146,16 +156,15 @@ def trade_by_trend_test(swings, df):
             ) or (
                 swings[i]["count_candles"] == 1 and swings[i - 1]["count_candles"] >= 2
             ):
-                # print(f"curr_idx: {i}, broke_idx: {broke_idx}")
                 if broke_idx == i - 1:
                     level_middle = level_down + (level_up - level_down) * Decimal("0.5")
-                    # print("level_middle:", level_middle)
 
                     if swings[i]["type"] == "UP":  # SWING LOW
                         if (
                             any(item["type"] == "SELL" for item in deferred_orders)
                             or any(item["type"] == "SELL" for item in active_orders)
-                            or Decimal(str(df.iloc[len(df) - 2]["close"])) > level_up
+                            or Decimal(str(df.iloc[len(df) - 2]["close"]))
+                            > value_adjustment(STOP_LOSS_DEVIATION, level_up, True)
                         ):
                             return
 
@@ -176,7 +185,8 @@ def trade_by_trend_test(swings, df):
                         if (
                             any(item["type"] == "BUY" for item in deferred_orders)
                             or any(item["type"] == "BUY" for item in active_orders)
-                            or Decimal(str(df.iloc[len(df) - 2]["close"])) < level_down
+                            or Decimal(str(df.iloc[len(df) - 2]["close"]))
+                            < value_adjustment(STOP_LOSS_DEVIATION, level_down)
                         ):
                             return
 

@@ -22,6 +22,7 @@ def signal_handler(sig, frame):
     print("\nПрограма зупиняється...")
     print("Виконується відключення від Metatrader 5...")
     mt5.shutdown()
+    print("Успішно відключенно. Можна закривати програму.")
     sys.exit(0)
 
 

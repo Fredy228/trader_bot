@@ -1,4 +1,4 @@
-version - 1.0.2
+version - 1.1.0
 
 config.py (./bot/config.py)
 -------------------------------
@@ -13,6 +13,8 @@ MODE = "test"  # "test" or "prod"
 STRATEGY = 1
 SYMBOL = "EURUSD"
 TIMEFRAME = mt5.TIMEFRAME_H1
+TAKE_PROFIT_DEVIATION = 0  # Значення в відсотках, може бути від'ємне
+STOP_LOSS_DEVIATION = 0  # Значення в відсотках, може бути від'ємне
 
 # TESTING SETTINGS
 START_BALANCE = 25000
