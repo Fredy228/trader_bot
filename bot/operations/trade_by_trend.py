@@ -5,7 +5,9 @@ from services.generate_id import generate_unique_id
 from operations.transaction import transaction_test
 from services.value_adjustment import value_adjustment
 
-from config import SYMBOL, TAKE_PROFIT_DEVIATION, STOP_LOSS_DEVIATION
+from config import SYMBOL, TAKE_PROFIT_DEVIATION, STOP_LOSS_DEVIATION, BREAK_TREND_BY
+
+IS_EXTREME = BREAK_TREND_BY == "extreme"
 
 deferred_orders = []
 active_orders = []
@@ -136,13 +138,15 @@ def trade_by_trend_test(swings, df):
         curr_time_start = swings[i]["time_start"]
         curr_time_end = swings[i]["time_end"]
         is_up = swings[i]["type"] == "UP"
+        curr_open = swings[i]["open"]
+        curr_close = swings[i]["close"]
 
         if i == 0:  # fist el
             if is_up:
-                level_up = curr_level
+                level_up = curr_level if IS_EXTREME else curr_close
 
             else:
-                level_down = curr_level
+                level_down = curr_level if IS_EXTREME else curr_close
 
         elif i == len(swings) - 1:  # last el
             # Logic for trade
@@ -207,9 +211,13 @@ def trade_by_trend_test(swings, df):
 
         else:  # middle el
             if is_up:  # UP
-                if level_up == 0 or level_up < curr_level:  # Price broke line UP
-                    level_up = curr_level
-                    level_down = swings[i - 1]["level"]
+                if (
+                    level_up == 0 or level_up < curr_level if IS_EXTREME else curr_close
+                ):  # Price broke line UP
+                    level_up = curr_level if IS_EXTREME else curr_close
+                    level_down = (
+                        swings[i - 1]["level"] if IS_EXTREME else swings[i - 1]["close"]
+                    )
 
                     if current_trend == "DOWN":
                         broke_idx = i
@@ -217,9 +225,15 @@ def trade_by_trend_test(swings, df):
                     current_trend = "UP"
 
             else:  # DOWN
-                if level_down == 0 or level_down > curr_level:  # Price broke line DOWN
-                    level_down = curr_level
-                    level_up = swings[i - 1]["level"]
+                if (
+                    level_down == 0 or level_down > curr_level
+                    if IS_EXTREME
+                    else curr_close
+                ):  # Price broke line DOWN
+                    level_down = curr_level if IS_EXTREME else curr_close
+                    level_up = (
+                        swings[i - 1]["level"] if IS_EXTREME else swings[i - 1]["close"]
+                    )
 
                     if current_trend == "UP":
                         broke_idx = i

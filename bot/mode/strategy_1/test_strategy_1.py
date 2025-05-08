@@ -2,6 +2,7 @@ from pprint import pprint
 import dash
 from dash import html, dcc
 import plotly.graph_objects as go
+from decimal import Decimal
 
 from operations.candles import get_candles_from_date
 from operations.extremes import find_extremes
@@ -9,7 +10,17 @@ from operations.trade_by_trend import trade_by_trend_test, get_orders
 from operations.trend import plot_trend
 from operations.transaction import get_balance, get_time_line_balance
 
-from config import SYMBOL, TIMEFRAME, FROM_DATE, DEBUG_MODE, MODE, START_BALANCE
+from config import (
+    SYMBOL,
+    TIMEFRAME,
+    FROM_DATE,
+    DEBUG_MODE,
+    MODE,
+    START_BALANCE,
+    TAKE_PROFIT_DEVIATION,
+    STOP_LOSS_DEVIATION,
+    BREAK_TREND_BY,
+)
 
 app = dash.Dash(__name__)
 
@@ -163,8 +174,6 @@ def test_strategy_1():
         xaxis_title="Час",
         yaxis_title="Ціна",
         xaxis_rangeslider_visible=True,
-        # dragmode="zoom",
-        # yaxis=dict(fixedrange=False),
     )
 
     time_line_balabce, balance_line = get_time_line_balance()
@@ -195,6 +204,10 @@ def test_strategy_1():
 
     print("\nЗапуск вебсайту...\n")
 
+    last_balance = get_balance()
+
+    p_style = {"fontSize": 18, "margin": "0 0 3px 0"}
+
     app.layout = html.Div(
         [
             html.H1("Конфігурація", style={"textAlign": "center", "fontSize": 25}),
@@ -202,15 +215,27 @@ def test_strategy_1():
                 [
                     html.P(
                         f"Символ: {SYMBOL}",
-                        style={"fontSize": 18, "margin": "0 0 5px 0"},
+                        style=p_style,
                     ),
                     html.P(
                         f"Таймфрейм: {TIMEFRAME}",
-                        style={"fontSize": 18, "margin": "0 0 5px 0"},
+                        style=p_style,
                     ),
                     html.P(
                         f"Дата старту: {FROM_DATE}",
-                        style={"fontSize": 18, "margin": "0 0 5px 0"},
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Take profit deviation: {TAKE_PROFIT_DEVIATION}%",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Stop loss deviation: {STOP_LOSS_DEVIATION}%",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Break trend by: {BREAK_TREND_BY}",
+                        style=p_style,
                     ),
                     html.P(
                         f"Режим: {MODE}", style={"fontSize": 18, "margin": "0 0 15px 0"}
@@ -245,8 +270,28 @@ def test_strategy_1():
             html.Div(
                 [
                     html.P(
-                        f"Баланс: {START_BALANCE} => {get_balance()}",
-                        style={"fontSize": 18, "margin": "0 0 5px 0"},
+                        f"Баланс: {START_BALANCE} => {last_balance}",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"{"Профіт" if last_balance >= Decimal(str(START_BALANCE)) else "Збиток"}: {last_balance - Decimal(str(START_BALANCE))}",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Кількість відкрих угод:  {len(opened_orders)}",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Кількість відхилених угод:  {len(canceled_orders)}",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Кількість \u2191профіт\u2191 угод:  {sum(1 for order in closed_orders if order["profit"] is True)}",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Кількість \u2193збиток\u2193 угод:  {sum(1 for order in closed_orders if order["profit"] is False)}",
+                        style=p_style,
                     ),
                 ],
                 style={

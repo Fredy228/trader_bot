@@ -1,4 +1,4 @@
-version - 1.1.0
+version - 1.2.0
 
 config.py (./bot/config.py)
 -------------------------------
@@ -15,6 +15,7 @@ SYMBOL = "EURUSD"
 TIMEFRAME = mt5.TIMEFRAME_H1
 TAKE_PROFIT_DEVIATION = 0  # Значення в відсотках, може бути від'ємне
 STOP_LOSS_DEVIATION = 0  # Значення в відсотках, може бути від'ємне
+BREAK_TREND_BY = "body"  # "extreme" or "body"
 
 # TESTING SETTINGS
 START_BALANCE = 25000

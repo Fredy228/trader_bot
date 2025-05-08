@@ -7,7 +7,14 @@ def find_extremes(df):
     direction = None
 
     def add_swing(
-        swing_type, level, open_price, close_price, count, start, end, indexes=[]
+        swing_type,
+        level,
+        open_price,
+        close_price,
+        count,
+        start,
+        end,
+        indexes=[],
     ):
         swings.append(
             {
