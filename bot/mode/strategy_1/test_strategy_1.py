@@ -1,4 +1,3 @@
-from pprint import pprint
 import dash
 from dash import html, dcc
 import plotly.graph_objects as go
@@ -45,10 +44,10 @@ def test_strategy_1():
     print("\nЙде будування графіка...\n")
     canceled_orders, closed_orders, opened_orders, start_deferre_orders = get_orders()
 
-    hours_line, values_line = plot_trend(
-        swings=swings,
-        candle={"high": df["high"][0], "low": df["low"][0], "time": df["time"][0]},
-    )
+    # hours_line, values_line = plot_trend(
+    #     swings=swings,
+    #     candle={"high": df["high"][0], "low": df["low"][0], "time": df["time"][0]},
+    # )
 
     fig = go.Figure(
         data=[
@@ -62,15 +61,15 @@ def test_strategy_1():
         ]
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=hours_line,
-            y=values_line,
-            mode="lines+markers",
-            name="Трендова лінія",
-            line=dict(color="yellow", width=2, dash="solid"),
-        )
-    )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=hours_line,
+    #         y=values_line,
+    #         mode="lines+markers",
+    #         name="Трендова лінія",
+    #         line=dict(color="yellow", width=2, dash="solid"),
+    #     )
+    # )
 
     for trade in start_deferre_orders:
         fig.add_trace(
@@ -204,7 +203,7 @@ def test_strategy_1():
 
     print("\nЗапуск вебсайту...\n")
 
-    last_balance = get_balance()
+    last_balance, profit_sum, loss_sum = get_balance()
 
     p_style = {"fontSize": 18, "margin": "0 0 3px 0"}
 
@@ -290,7 +289,15 @@ def test_strategy_1():
                         style=p_style,
                     ),
                     html.P(
+                        f"Сума \u2191профіт\u2191 угод:  {profit_sum}",
+                        style=p_style,
+                    ),
+                    html.P(
                         f"Кількість \u2193збиток\u2193 угод:  {sum(1 for order in closed_orders if order["profit"] is False)}",
+                        style=p_style,
+                    ),
+                    html.P(
+                        f"Сума \u2193збиток\u2193 угод:  {loss_sum}",
                         style=p_style,
                     ),
                 ],

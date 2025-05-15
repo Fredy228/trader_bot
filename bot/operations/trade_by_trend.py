@@ -67,10 +67,11 @@ def check_orders(candle, prev_time):
         for order in active_orders[:]:
             curr_order = order.copy()
             curr_order["time"] = candle["time"]
+            gap = order["level_up"] - order["level_down"]
 
             if order["type"] == "BUY":
-                if tick_bid < value_adjustment(
-                    STOP_LOSS_DEVIATION, order["level_down"]
+                if tick_bid < order["level_down"] + value_adjustment(
+                    STOP_LOSS_DEVIATION, gap
                 ):  # Stop loss
                     curr_order["profit"] = False
                     curr_order["price"] = tick_bid
@@ -83,8 +84,8 @@ def check_orders(candle, prev_time):
                     active_orders.remove(order)
                     print("Stop loss order buy")
 
-                if tick_bid >= value_adjustment(
-                    TAKE_PROFIT_DEVIATION, order["level_up"]
+                if tick_bid >= order["level_up"] + value_adjustment(
+                    TAKE_PROFIT_DEVIATION, gap
                 ):  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_bid
@@ -97,8 +98,8 @@ def check_orders(candle, prev_time):
                     print("Take profit order buy")
 
             elif order["type"] == "SELL":
-                if tick_bid > value_adjustment(
-                    STOP_LOSS_DEVIATION, order["level_up"], True
+                if tick_bid > order["level_up"] + value_adjustment(
+                    STOP_LOSS_DEVIATION, gap, True
                 ):  # Stop loss
                     curr_order["profit"] = False
                     curr_order["price"] = tick_bid
@@ -110,8 +111,8 @@ def check_orders(candle, prev_time):
                     active_orders.remove(order)
                     print("Stop loss order sell")
 
-                if tick_bid <= value_adjustment(
-                    TAKE_PROFIT_DEVIATION, order["level_down"], True
+                if tick_bid <= order["level_down"] + value_adjustment(
+                    TAKE_PROFIT_DEVIATION, gap, True
                 ):  # Take profit
                     curr_order["profit"] = True
                     curr_order["price"] = tick_bid
@@ -127,6 +128,8 @@ def check_orders(candle, prev_time):
 def trade_by_trend_test(swings, df):
     level_up = 0
     level_down = 0
+    level_up_body = 0
+    level_down_body = 0
     current_trend = None
     broke_idx = None
 
@@ -135,18 +138,18 @@ def trade_by_trend_test(swings, df):
 
     for i in range(0, len(swings)):
         curr_level = swings[i]["level"]
-        curr_time_start = swings[i]["time_start"]
         curr_time_end = swings[i]["time_end"]
         is_up = swings[i]["type"] == "UP"
-        curr_open = swings[i]["open"]
         curr_close = swings[i]["close"]
 
         if i == 0:  # fist el
             if is_up:
-                level_up = curr_level if IS_EXTREME else curr_close
+                level_up = curr_level
+                level_up_body = curr_close
 
             else:
-                level_down = curr_level if IS_EXTREME else curr_close
+                level_down = curr_level
+                level_down_body = curr_close
 
         elif i == len(swings) - 1:  # last el
             # Logic for trade
@@ -164,12 +167,9 @@ def trade_by_trend_test(swings, df):
                     level_middle = level_down + (level_up - level_down) * Decimal("0.5")
 
                     if swings[i]["type"] == "UP":  # SWING LOW
-                        if (
-                            any(item["type"] == "SELL" for item in deferred_orders)
-                            or any(item["type"] == "SELL" for item in active_orders)
-                            or Decimal(str(df.iloc[len(df) - 2]["close"]))
-                            > value_adjustment(STOP_LOSS_DEVIATION, level_up, True)
-                        ):
+                        if any(
+                            item["type"] == "SELL" for item in deferred_orders
+                        ) or any(item["type"] == "SELL" for item in active_orders):
                             return
 
                         def_ord = {
@@ -186,12 +186,9 @@ def trade_by_trend_test(swings, df):
                         print("deferred order sell")
 
                     else:  # SWING HIGH
-                        if (
-                            any(item["type"] == "BUY" for item in deferred_orders)
-                            or any(item["type"] == "BUY" for item in active_orders)
-                            or Decimal(str(df.iloc[len(df) - 2]["close"]))
-                            < value_adjustment(STOP_LOSS_DEVIATION, level_down)
-                        ):
+                        if any(
+                            item["type"] == "BUY" for item in deferred_orders
+                        ) or any(item["type"] == "BUY" for item in active_orders):
                             return
 
                         def_ord = {
@@ -211,13 +208,16 @@ def trade_by_trend_test(swings, df):
 
         else:  # middle el
             if is_up:  # UP
+
                 if (
-                    level_up == 0 or level_up < curr_level if IS_EXTREME else curr_close
+                    (level_up == 0 or level_up < curr_level)
+                    if IS_EXTREME
+                    else (level_up_body == 0 or level_up_body < curr_close)
                 ):  # Price broke line UP
-                    level_up = curr_level if IS_EXTREME else curr_close
-                    level_down = (
-                        swings[i - 1]["level"] if IS_EXTREME else swings[i - 1]["close"]
-                    )
+                    level_up = curr_level
+                    level_up_body = curr_close
+                    level_down = swings[i - 1]["level"]
+                    level_down_body = swings[i - 1]["close"]
 
                     if current_trend == "DOWN":
                         broke_idx = i
@@ -226,14 +226,14 @@ def trade_by_trend_test(swings, df):
 
             else:  # DOWN
                 if (
-                    level_down == 0 or level_down > curr_level
+                    (level_down == 0 or level_down > curr_level)
                     if IS_EXTREME
-                    else curr_close
+                    else (level_down_body == 0 or level_down_body > curr_close)
                 ):  # Price broke line DOWN
-                    level_down = curr_level if IS_EXTREME else curr_close
-                    level_up = (
-                        swings[i - 1]["level"] if IS_EXTREME else swings[i - 1]["close"]
-                    )
+                    level_down = curr_level
+                    level_down_body = curr_close
+                    level_up = swings[i - 1]["level"]
+                    level_up_body = swings[i - 1]["close"]
 
                     if current_trend == "UP":
                         broke_idx = i
