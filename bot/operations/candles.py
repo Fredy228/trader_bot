@@ -34,3 +34,12 @@ def get_candles_from_date(
     df["low"] = df["low"].astype(str)
     df["close"] = df["close"].astype(str)
     return df[["time", "open", "high", "low", "close"]]
+
+
+def get_direction_candle(candle):
+    if candle.open < candle.close:
+        return "UP"
+    elif candle.open > candle.close:
+        return "DOWN"
+    else:
+        return None

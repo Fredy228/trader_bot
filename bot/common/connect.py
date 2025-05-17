@@ -1,13 +1,18 @@
 import MetaTrader5 as mt5
+from services.logger import logger
+
 
 def connect():
-    print("Connecting...")
+    logger.info("Підключення до MetaTrader 5...")
+    print("\nПідключення до MetaTrader 5...\n")
 
     connect = mt5.initialize()
-    print("Connect: ", connect)
+    logger.info(f"Статус підключення: {connect}")
+    print(f"Статус підключення: {connect}")
 
     if not connect:
-        print("Error connecting :(")
-        print(mt5.last_error())
+        logger.error("Помилка підключення :(")
+        print("Помилка підключення :(")
+        logger.error(mt5.last_error())
         mt5.shutdown()
         exit()

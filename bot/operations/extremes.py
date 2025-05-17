@@ -1,4 +1,5 @@
 from decimal import Decimal
+from operations.candles import get_direction_candle
 
 
 def find_extremes(df):
@@ -130,3 +131,24 @@ def find_extremes(df):
                 direction, batch = "DOWN", 1
 
     return swings
+
+
+def check_patterns(first, second, last):
+    first_direction = get_direction_candle(first)
+    second_direction = get_direction_candle(second)
+
+    if get_direction_candle(last) == "UP":  # UP
+        if not (
+            (second_direction == "DOWN" and first_direction == "DOWN")
+            or (second_direction == "UP" and first_direction == "DOWN")
+        ):
+            return False
+
+        else:  # DOWN
+            if not (
+                (second_direction == "UP" and first_direction == "UP")
+                or (second_direction == "DOWN" and first_direction == "UP")
+            ):
+                return False
+
+    return True
