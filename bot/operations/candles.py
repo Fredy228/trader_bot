@@ -3,6 +3,8 @@ import pandas as pd
 from datetime import datetime
 import pytz
 
+from services.logger import logger
+
 
 def get_candles(currency="EURUSD", timeframe=mt5.TIMEFRAME_H1, bars=50):
     rates = mt5.copy_rates_from_pos(currency, timeframe, 0, bars)
@@ -21,8 +23,9 @@ def get_candles_from_date(
     date_now = pytz.timezone("Etc/UTC").localize(
         datetime.now().replace(second=0, microsecond=0)
     )
-    print("from_date:", from_date)
-    print("date_now:", date_now)
+    logger.info(f"Час початку: {from_date}")
+    logger.info(f"Час теперишній: {date_now}")
+
     rates = mt5.copy_rates_range(currency, timeframe, from_date, date_now)
     if rates is None or len(rates) == 0:
         raise ValueError("Помилка. Не вдалось отримати свічки.")
