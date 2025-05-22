@@ -6,7 +6,6 @@ from dash.dependencies import Input, Output
 
 from operations.candles import get_candles
 from operations.extremes import find_extremes
-from operations.trend import plot_trend
 
 from config import SYMBOL, BARS, TIMEFRAME, DEBUG_MODE
 
@@ -36,9 +35,6 @@ def prod_strategy_1():
             pprint(swings)
 
         print("\nПостроение тренда...\n")
-        hours_line, values_line = plot_trend(
-            swings=swings, candle={"high": df["high"][0], "low": df["low"][0]}
-        )
 
         fig = go.Figure(
             data=[
@@ -50,16 +46,6 @@ def prod_strategy_1():
                     close=df["close"],
                 )
             ]
-        )
-
-        fig.add_trace(
-            go.Scatter(
-                x=hours_line,
-                y=values_line,
-                mode="lines+markers",
-                name="Трендовая линия",
-                line=dict(color="red", width=2, dash="solid"),
-            )
         )
 
         fig.update_layout(

@@ -138,17 +138,15 @@ def check_patterns(first, second, last):
     second_direction = get_direction_candle(second)
 
     if get_direction_candle(last) == "UP":  # UP
-        if not (
-            (second_direction == "DOWN" and first_direction == "DOWN")
-            or (second_direction == "UP" and first_direction == "DOWN")
+        if (second_direction == "DOWN" and first_direction == "DOWN") or (
+            second_direction == "UP" and first_direction == "DOWN"
         ):
-            return False
+            return True
 
-        else:  # DOWN
-            if not (
-                (second_direction == "UP" and first_direction == "UP")
-                or (second_direction == "DOWN" and first_direction == "UP")
-            ):
-                return False
+    else:  # DOWN
+        if (second_direction == "UP" and first_direction == "UP") or (
+            second_direction == "DOWN" and first_direction == "UP"
+        ):
+            return True
 
-    return True
+    return False

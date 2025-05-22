@@ -2,6 +2,7 @@ import MetaTrader5 as mt5
 import pandas as pd
 from datetime import datetime
 import pytz
+from decimal import Decimal
 
 from services.logger import logger
 
@@ -40,9 +41,7 @@ def get_candles_from_date(
 
 
 def get_direction_candle(candle):
-    if candle.open < candle.close:
+    if Decimal(str(candle["open"])) < Decimal(str(candle["close"])):
         return "UP"
-    elif candle.open > candle.close:
-        return "DOWN"
     else:
-        return None
+        return "DOWN"

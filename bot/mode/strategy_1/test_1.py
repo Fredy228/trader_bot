@@ -1,6 +1,7 @@
 from services.logger import logger
 from operations.candles import get_candles_from_date
-from operations.trade_test_1 import trade_test_1
+from trade.trade_test_1 import trade_test_1
+from operations.show_static_statistic import show_static_statistic
 
 from config import (
     SYMBOL,
@@ -19,4 +20,8 @@ def test_1():
 
     print("\nЙде торгівля...\n")
     logger.info("Йде торгівля...")
-    trade_test_1(df)
+    trend = trade_test_1(df)
+
+    print("\nЙде будування графіку...\n")
+    logger.info("Йде будування графіку...")
+    show_static_statistic(df, trend=trend)

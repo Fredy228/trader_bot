@@ -60,12 +60,12 @@ def transaction_test(order, open_price):
             lot = round_decimal(calc_lot("BUY", order["level_down"], open_price))
             points = (order["price"] - open_price) * contract_size
             amount = lot * round_decimal(points)
-            print(f"order: {order["name"]}, type: buy, amount: {amount}, lot: {lot}")
+            print(f"order: {order['name']}, type: buy, amount: {amount}, lot: {lot}")
         elif order["type"] == "SELL":
             lot = round_decimal(calc_lot("SELL", order["level_up"], open_price))
             points = (open_price - order["price"]) * contract_size
             amount = lot * round_decimal(points)
-            print(f"order: {order["name"]}, type: sell, amount: {amount}, lot: {lot}")
+            print(f"order: {order['name']}, type: sell, amount: {amount}, lot: {lot}")
 
         if amount > 0:
             profit_sum += amount
