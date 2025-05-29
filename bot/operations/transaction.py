@@ -3,6 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from config import START_BALANCE, SYMBOL, DEBUG_MODE, FROM_DATE
 from services.round_decimal import round_decimal
+from services.logger import logger
 
 balance = Decimal(str(START_BALANCE))
 
@@ -60,12 +61,16 @@ def transaction_test(order, open_price):
             lot = round_decimal(calc_lot("BUY", order["level_down"], open_price))
             points = (order["price"] - open_price) * contract_size
             amount = lot * round_decimal(points)
-            print(f"order: {order['name']}, type: buy, amount: {amount}, lot: {lot}")
+            logger.info(
+                f"order: {order['name']}, type: buy, amount: {amount}, lot: {lot}"
+            )
         elif order["type"] == "SELL":
             lot = round_decimal(calc_lot("SELL", order["level_up"], open_price))
             points = (open_price - order["price"]) * contract_size
             amount = lot * round_decimal(points)
-            print(f"order: {order['name']}, type: sell, amount: {amount}, lot: {lot}")
+            logger.info(
+                f"order: {order['name']}, type: sell, amount: {amount}, lot: {lot}"
+            )
 
         if amount > 0:
             profit_sum += amount
@@ -78,7 +83,7 @@ def transaction_test(order, open_price):
 
         return True
     except Exception as e:
-        print(f"Помилка при виконанні транзакції: {e}")
+        logger.info(f"Помилка при виконанні транзакції: {e}")
         return False
 
 
@@ -86,7 +91,7 @@ def get_balance():
     global balance, balances_line, profit_sum, loss_sum
 
     if DEBUG_MODE == 1:
-        print(balances_line)
+        logger.info(balances_line)
 
     return (
         balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),

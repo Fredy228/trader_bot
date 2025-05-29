@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from services.logger import logger
 from operations.extremes import check_patterns
+from operations.trade_by_history_trend import trade_by_history_trend
+from operations.check_orders_test import check_orders, get_orders
 
 
 def trade_test_1(df):
@@ -11,8 +13,14 @@ def trade_test_1(df):
     level_down = None
     prev_idx_down = 0
     trend = {"line": [], "time": []}
+    len_df = len(df)
 
     for i, row in enumerate(df.itertuples(index=False)):
+
+        percent = (i / len_df) * 100
+        filled_length = int(50 * i // len_df)
+        bar = "#" * filled_length + "-" * (50 - filled_length)
+        print(f"\r[{bar}] {percent:.1f}%", end="", flush=True)
 
         if i < 2:
             continue
@@ -30,7 +38,18 @@ def trade_test_1(df):
         is_up = open_price < close_price
         is_change_trend = False
 
-        print(f"i: {i}, is_up: {is_up}")
+        if i < len(df) - 2:
+            check_orders(
+                time,
+                df.iloc[i + 1]["time"],
+                {
+                    "open": open_price,
+                    "close": close_price,
+                    "high": high,
+                    "low": low,
+                    "time": time,
+                },
+            )
 
         # Check patterns
         if not check_patterns(prev_prev_row, prev_row, curr_row):
@@ -96,8 +115,7 @@ def trade_test_1(df):
             if is_broken_up:
                 if direction == "DOWN":
                     is_change_trend = True
-                    print(f"Зміна тренду UP {time}")
-                    logger.info(f"Зміна тренду UP {time}")
+                    logger.info(f"Зміна тренду на UP {time}")
                 direction = "UP"
 
                 down_new_level = None
@@ -118,8 +136,7 @@ def trade_test_1(df):
             if is_broken_down:
                 if direction == "UP":
                     is_change_trend = True
-                    print(f"Зміна тренду DOWN {time}")
-                    logger.info(f"Зміна тренду DOWN {time}")
+                    logger.info(f"Зміна тренду на DOWN {time}")
                 direction = "DOWN"
 
                 up_new_level = None
@@ -140,4 +157,33 @@ def trade_test_1(df):
         if not is_change_trend:
             continue
 
-    return trend
+        trade_by_history_trend(
+            Decimal(level_up["level"]), Decimal(level_down["level"]), direction, time
+        )
+
+    canceled_orders, closed_orders, opened_orders = get_orders()
+
+    markers = {"time": [], "color": [], "price": [], "marker": [], "name": []}
+
+    for order in opened_orders:
+        markers["time"].append(order["time"])
+        markers["price"].append(order["price"])
+        markers["marker"].append("diamond")
+        markers["color"].append("orange")
+        markers["name"].append(f"Відкрито ордер {order["name"]}")
+
+    for order in closed_orders:
+        markers["time"].append(order["time"])
+        markers["price"].append(order["price"])
+        markers["marker"].append("triangle" if order["profit"] else "inverted_triangle")
+        markers["color"].append("green" if order["profit"] else "red")
+        markers["name"].append(f"Закрито ордер {order["name"]}")
+
+    for order in canceled_orders:
+        markers["time"].append(order["time"])
+        markers["price"].append(order["price"])
+        markers["marker"].append("x")
+        markers["color"].append("blue")
+        markers["name"].append(f"Відхилено ордер {order["name"]}")
+
+    return trend, markers

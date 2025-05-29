@@ -1,14 +1,14 @@
 import MetaTrader5 as mt5
 import pandas as pd
 
+from services.logger import logger
 
-def get_ticks(symbol, time_from, time_prev, flags=mt5.COPY_TICKS_ALL):
-    delta = time_from - time_prev
-    time_to = time_from + delta
+
+def get_ticks(symbol, time_from, time_to, flags=mt5.COPY_TICKS_ALL):
     ticks = mt5.copy_ticks_range(symbol, time_from, time_to, flags)
 
     if ticks is None or len(ticks) == 0:
-        print("\nНе вдалось отримати тіки.\n")
+        logger.warning(f"Не вдалось отримати тіки. {time_from} - {time_to}")
         return None
 
     ticks_frame = pd.DataFrame(ticks)

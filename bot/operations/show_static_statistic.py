@@ -1,18 +1,10 @@
-import dash
-from dash import html, dcc
-import plotly.graph_objects as go
-
-from bokeh.plotting import figure, show, output_file
-from bokeh.io import output_notebook
+from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool
-from bokeh.layouts import layout
-from bokeh.io import curdoc
+from bokeh.layouts import column
 from bokeh.models import WheelZoomTool
 
-app = dash.Dash(__name__)
 
-
-def show_static_statistic(df, trend=None):
+def show_static_statistic(df, trend=None, markers=None, balance_history=None):
 
     df["color"] = [
         "green" if close > open_ else "red"
@@ -32,8 +24,10 @@ def show_static_statistic(df, trend=None):
 
     p = figure(
         x_axis_type="datetime",
-        title="Candlestick Chart",
-        sizing_mode="stretch_both",
+        title="Trade",
+        # sizing_mode="stretch_both",
+        sizing_mode="stretch_width",
+        height=400,
     )
 
     wheel_zoom = WheelZoomTool(dimensions="both", zoom_on_axis=True)
@@ -78,8 +72,75 @@ def show_static_statistic(df, trend=None):
             legend_label="Тренд",
         )
 
+    if markers:
+        marker_source = ColumnDataSource(
+            data=dict(
+                time=markers["time"],
+                price=list(map(float, markers["price"])),
+                label=markers["name"],
+                color=markers["color"],
+                marker=markers["marker"],
+            )
+        )
+
+        marker_renderer = p.scatter(
+            x="time",
+            y="price",
+            size=30,
+            color="color",
+            marker="marker",
+            source=marker_source,
+            legend_field="label",
+            line_width=2,
+            line_color="black",
+        )
+
+        marker_hover = HoverTool(
+            renderers=[marker_renderer],
+            tooltips=[
+                ("Тип", "@label"),
+                ("Цена", "@price"),
+                ("Время", "@time{%F %H:%M}"),
+            ],
+            formatters={"@time": "datetime"},
+        )
+
+        p.add_tools(marker_hover)
+
+    if balance_history:
+        balance_source = ColumnDataSource(
+            data=dict(
+                time=balance_history["time"],
+                balance=list(map(float, balance_history["balance"])),
+            )
+        )
+
+        balance_plot = figure(
+            x_axis_type="datetime",
+            title="Баланс",
+            sizing_mode="stretch_width",
+            height=320,
+            x_range=p.x_range,
+        )
+
+        balance_plot.line(
+            x="time",
+            y="balance",
+            source=balance_source,
+            line_color="orange",
+            line_width=2,
+        )
+
+        balance_plot.yaxis.axis_label = "Баланс"
+        balance_plot.xaxis.axis_label = "Час"
+    else:
+        balance_plot = None
+
     p.grid.grid_line_alpha = 0.6
     p.yaxis.axis_label = "Ціна"
     p.xaxis.axis_label = "Час"
 
-    show(p)
+    if balance_plot:
+        show(column(p, balance_plot, sizing_mode="stretch_both"))
+    else:
+        show(p)

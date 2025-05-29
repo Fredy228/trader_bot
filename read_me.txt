@@ -1,4 +1,4 @@
-version - 1.2.1
+version - 2.1.1
 
 config.py (./bot/config.py)
 -------------------------------
@@ -48,5 +48,4 @@ TIMEFRAME_H8 - 8 часов
 TIMEFRAME_H12 - 12 часов
 TIMEFRAME_D1 - 1 день
 TIMEFRAME_W1 - 1 неделя
-TIMEFRAME_MN1 - 1 месяц
 ------------------------------
