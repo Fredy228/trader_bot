@@ -10,7 +10,14 @@ from common.symbol import check_symbol
 from mode.strategy_1.test_1 import test_1
 from mode.strategy_1.prod_strategy_1 import prod_strategy_1
 
-from config import TIMEFRAME, MODE
+from config import (
+    TIMEFRAME,
+    MODE,
+    SYMBOL,
+    TAKE_PROFIT_DEVIATION,
+    STOP_LOSS_DEVIATION,
+    BREAK_TREND_BY,
+)
 
 logger.info("Запуск програми...")
 print("Запуск програми...")
@@ -18,7 +25,11 @@ print("Запуск програми...")
 connect()
 output_account_info()
 check_symbol()
+logger.info(f"SYMBOL: {SYMBOL}")
 logger.info(f"Timeframe: {TIMEFRAME}")
+logger.info(f"TAKE_PROFIT_DEVIATION: {TAKE_PROFIT_DEVIATION}")
+logger.info(f"STOP_LOSS_DEVIATION: {STOP_LOSS_DEVIATION}")
+logger.info(f"BREAK_TREND_BY: {BREAK_TREND_BY}")
 
 
 def signal_handler(sig, frame):
