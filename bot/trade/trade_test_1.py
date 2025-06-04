@@ -1,9 +1,12 @@
 from decimal import Decimal
+import pandas as pd
 
 from services.logger import logger
 from operations.extremes import check_patterns
 from operations.trade_by_history_trend import trade_by_history_trend
 from operations.check_orders_test import check_orders, get_orders
+
+from config import DEBUG_MODE
 
 
 def trade_test_1(df):
@@ -12,7 +15,7 @@ def trade_test_1(df):
     prev_idx_up = 0
     level_down = None
     prev_idx_down = 0
-    trend = {"line": [], "time": []}
+    trend = pd.DataFrame(columns=["time", "trend"])
     len_df = len(df)
 
     for i, row in enumerate(df.itertuples(index=False)):
@@ -66,17 +69,21 @@ def trade_test_1(df):
                     max_value = value_high
                     idx_up_value = j
 
-            logger.info(
-                f"Pattern high: {df.iloc[idx_up_value]['high']} {df.iloc[idx_up_value]['time']}"
-            )
+            if DEBUG_MODE == 1:
+                logger.info(
+                    f"Pattern high: {df.iloc[idx_up_value]['high']} {df.iloc[idx_up_value]['time']}"
+                )
 
             if level_up is None or max_value > Decimal(str(level_up["level"])):
                 if level_up is not None:
                     prev_idx_up = level_up["idx"]
                 new_candle = df.iloc[idx_up_value]
                 level_up = {"level": max_value, "idx": idx_up_value}
-                trend["line"].append(max_value)
-                trend["time"].append(new_candle["time"])
+                trend.loc[len(trend)] = [
+                    new_candle["time"],
+                    float(max_value),
+                ]
+
                 return True
             else:
                 return False
@@ -91,9 +98,10 @@ def trade_test_1(df):
                     min_value = value_low
                     idx_down_value = j
 
-            logger.info(
-                f"Pattern low: {df.iloc[idx_down_value]['low']} {df.iloc[idx_down_value]['time']}"
-            )
+            if DEBUG_MODE == 1:
+                logger.info(
+                    f"Pattern low: {df.iloc[idx_down_value]['low']} {df.iloc[idx_down_value]['time']}"
+                )
 
             if level_down is None or min_value < Decimal(str(level_down["level"])):
                 if level_down is not None:
@@ -103,8 +111,11 @@ def trade_test_1(df):
                     "level": min_value,
                     "idx": idx_down_value,
                 }
-                trend["line"].append(min_value)
-                trend["time"].append(new_candle["time"])
+                trend.loc[len(trend)] = [
+                    new_candle["time"],
+                    float(min_value),
+                ]
+
                 return True
             else:
                 return False
@@ -161,29 +172,6 @@ def trade_test_1(df):
             Decimal(level_up["level"]), Decimal(level_down["level"]), direction, time
         )
 
-    canceled_orders, closed_orders, opened_orders = get_orders()
-
-    markers = {"time": [], "color": [], "price": [], "marker": [], "name": []}
-
-    for order in opened_orders:
-        markers["time"].append(order["time"])
-        markers["price"].append(order["price"])
-        markers["marker"].append("diamond")
-        markers["color"].append("orange")
-        markers["name"].append(f"Відкрито ордер {order["name"]}")
-
-    for order in closed_orders:
-        markers["time"].append(order["time"])
-        markers["price"].append(order["price"])
-        markers["marker"].append("triangle" if order["profit"] else "inverted_triangle")
-        markers["color"].append("green" if order["profit"] else "red")
-        markers["name"].append(f"Закрито ордер {order["name"]}")
-
-    for order in canceled_orders:
-        markers["time"].append(order["time"])
-        markers["price"].append(order["price"])
-        markers["marker"].append("x")
-        markers["color"].append("blue")
-        markers["name"].append(f"Відхилено ордер {order["name"]}")
+    markers = get_orders()
 
     return trend, markers

@@ -10,8 +10,15 @@ from config import (
     FROM_DATE,
 )
 
+_has_shown = False
+
 
 def test_1():
+    global _has_shown
+    if _has_shown:
+        return
+    _has_shown = True
+
     logger.info("Йде отримання даних...")
     print("\nЙде отримання даних...\n")
     df = get_candles_from_date(SYMBOL, TIMEFRAME, FROM_DATE)
@@ -25,10 +32,10 @@ def test_1():
 
     print("\nЙде будування графіку...\n")
     logger.info("Йде будування графіку...")
-    time_line, balances_line = get_time_line_balance()
+    balance_history = get_time_line_balance()
     show_static_statistic(
         df,
         trend=trend,
         markers=markers,
-        balance_history={"time": time_line, "balance": balances_line},
+        balance_history=balance_history,
     )

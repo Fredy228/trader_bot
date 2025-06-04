@@ -1,5 +1,6 @@
 import MetaTrader5 as mt5
 from decimal import Decimal, ROUND_HALF_UP
+import pandas as pd
 
 from config import START_BALANCE, SYMBOL, DEBUG_MODE, FROM_DATE
 from services.round_decimal import round_decimal
@@ -7,6 +8,7 @@ from services.logger import logger
 
 balance = Decimal(str(START_BALANCE))
 
+balance_df = pd.DataFrame(columns=["time", "value"])
 balances_line = []
 time_line = []
 trade_contract_size = None
@@ -51,7 +53,7 @@ def calc_lot(type="BUY", stop_loss=0, open_price=0):
 
 
 def transaction_test(order, open_price):
-    global balance, balances_line, time_line, profit_sum, loss_sum
+    global balance, balances_line, time_line, profit_sum, loss_sum, balance_df
 
     contract_size = get_contract_size()
 
@@ -78,8 +80,10 @@ def transaction_test(order, open_price):
             loss_sum += amount
 
         balance += amount
-        balances_line.append(balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
-        time_line.append(order["time"])
+        balance_df.loc[len(balance_df)] = [
+            order["time"],
+            float(balance),
+        ]
 
         return True
     except Exception as e:
@@ -88,10 +92,7 @@ def transaction_test(order, open_price):
 
 
 def get_balance():
-    global balance, balances_line, profit_sum, loss_sum
-
-    if DEBUG_MODE == 1:
-        logger.info(balances_line)
+    global balance, profit_sum, loss_sum
 
     return (
         balance.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
@@ -101,6 +102,9 @@ def get_balance():
 
 
 def get_time_line_balance():
-    global time_line, balances_line
+    global balance_df
 
-    return time_line, balances_line
+    if DEBUG_MODE == 1:
+        print(balance_df)
+
+    return balance_df

@@ -1,4 +1,5 @@
 from decimal import Decimal
+import pandas as pd
 
 from operations.ticks import get_ticks
 from operations.transaction import transaction_test
@@ -11,15 +12,38 @@ from config import SYMBOL, TAKE_PROFIT_DEVIATION, STOP_LOSS_DEVIATION, BREAK_TRE
 # IS_EXTREME = BREAK_TREND_BY == "extreme"
 
 active_orders = []
-canceled_orders = []
-closed_orders = []
-opened_orders = []
+archive_orders = pd.DataFrame(columns=["time", "price", "marker", "text", "color"])
+
 
 last_tick = None
 
 
+def cancel_order(order):
+    global archive_orders
+
+    archive_orders.loc[len(archive_orders)] = [
+        order["time"],
+        float(order["price"]),
+        "circle",
+        f"Відміненно ордер {order["name"]}",
+        "blue",
+    ]
+
+
+def close_order(order):
+    global archive_orders
+
+    archive_orders.loc[len(archive_orders)] = [
+        order["time"],
+        float(order["price"]),
+        f"{"arrow_up" if order["profit"] else "arrow_down"}",
+        f"Закрито ордер {order["name"]}",
+        f"{"green" if order["profit"] else "red"}",
+    ]
+
+
 def check_orders(from_time, to_time, candle):
-    global active_orders, canceled_orders, closed_orders, opened_orders, last_tick
+    global active_orders, last_tick, archive_orders
 
     deferred_orders = get_deferred_orders()
 
@@ -46,25 +70,37 @@ def check_orders(from_time, to_time, candle):
             if order["type"] == "BUY":
                 if tick_bid > order["level_up"]:  # Cancel order
                     logger.info(f"Відміненно order BUY {tick_log_info}")
-                    canceled_orders.append(curr_order)
+                    cancel_order(curr_order)
                     deferred_orders.remove(order)
 
                 if tick_bid <= order["price"]:  # Open order
                     logger.info(f"Відкрито order BUY {tick_log_info}")
                     active_orders.append(curr_order)
-                    opened_orders.append(curr_order)
+                    archive_orders.loc[len(archive_orders)] = [
+                        curr_order["time"],
+                        float(curr_order["price"]),
+                        "square",
+                        f"Відкрито ордер {curr_order["name"]}",
+                        "orange",
+                    ]
                     deferred_orders.remove(order)
 
             elif order["type"] == "SELL":
                 if tick_bid < order["level_down"]:  # Cancel order
                     logger.info(f"Відміненно order SELL {tick_log_info}")
-                    canceled_orders.append(curr_order)
+                    cancel_order(curr_order)
                     deferred_orders.remove(order)
 
                 if tick_bid >= order["price"]:  # Open order
                     logger.info(f"Відкрито order SELL {tick_log_info}")
                     active_orders.append(curr_order)
-                    opened_orders.append(curr_order)
+                    archive_orders.loc[len(archive_orders)] = [
+                        curr_order["time"],
+                        float(curr_order["price"]),
+                        "square",
+                        f"Відкрито ордер {curr_order["name"]}",
+                        "orange",
+                    ]
                     deferred_orders.remove(order)
 
         for order in active_orders[:]:
@@ -80,9 +116,9 @@ def check_orders(from_time, to_time, candle):
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
                     if is_success:
-                        closed_orders.append(curr_order)
+                        close_order(curr_order)
                     else:
-                        canceled_orders.append(curr_order)
+                        cancel_order(curr_order)
 
                     active_orders.remove(order)
                     logger.info(f"Stop loss order BUY {tick_log_info}")
@@ -94,9 +130,9 @@ def check_orders(from_time, to_time, candle):
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
                     if is_success:
-                        closed_orders.append(curr_order)
+                        close_order(curr_order)
                     else:
-                        canceled_orders.append(curr_order)
+                        cancel_order(curr_order)
                     active_orders.remove(order)
                     logger.info(f"Take profit order BUY {tick_log_info}")
 
@@ -108,9 +144,9 @@ def check_orders(from_time, to_time, candle):
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
                     if is_success:
-                        closed_orders.append(curr_order)
+                        close_order(curr_order)
                     else:
-                        canceled_orders.append(curr_order)
+                        cancel_order(curr_order)
                     active_orders.remove(order)
                     logger.info(f"Stop loss order SELL {tick_log_info}")
 
@@ -121,21 +157,21 @@ def check_orders(from_time, to_time, candle):
                     curr_order["price"] = tick_bid
                     is_success = transaction_test(curr_order, order["price"])
                     if is_success:
-                        closed_orders.append(curr_order)
+                        close_order(curr_order)
                     else:
-                        canceled_orders.append(curr_order)
+                        cancel_order(curr_order)
                     active_orders.remove(order)
                     logger.info(f"Take profit order SELL {tick_log_info}")
 
 
 def get_orders():
-    global canceled_orders, closed_orders, opened_orders
+    global archive_orders
 
-    return canceled_orders, closed_orders, opened_orders
+    return archive_orders
 
 
 def close_active_orders(time):
-    global last_tick, active_orders, closed_orders, canceled_orders
+    global last_tick, active_orders
 
     if last_tick is None:
         return
@@ -149,16 +185,16 @@ def close_active_orders(time):
             curr_order["profit"] = order["price"] < last_tick
             is_success = transaction_test(curr_order, order["price"])
             if is_success:
-                closed_orders.append(curr_order)
+                close_order(curr_order)
             else:
-                canceled_orders.append(curr_order)
+                cancel_order(curr_order)
         elif order["type"] == "SELL":
             curr_order["profit"] = order["price"] > last_tick
             is_success = transaction_test(curr_order, order["price"])
             if is_success:
-                closed_orders.append(curr_order)
+                close_order(curr_order)
             else:
-                canceled_orders.append(curr_order)
+                cancel_order(curr_order)
 
         active_orders.remove(order)
     logger.info(f"Закриття всіх ордерів")
