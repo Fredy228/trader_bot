@@ -12,7 +12,7 @@ from config import SYMBOL, TAKE_PROFIT_DEVIATION, STOP_LOSS_DEVIATION, BREAK_TRE
 # IS_EXTREME = BREAK_TREND_BY == "extreme"
 
 active_orders = []
-archive_orders = pd.DataFrame(columns=["time", "price", "marker", "text", "color"])
+archive_orders = pd.DataFrame(columns=["time", "position", "marker", "text", "color"])
 
 
 last_tick = None
@@ -23,7 +23,7 @@ def cancel_order(order):
 
     archive_orders.loc[len(archive_orders)] = [
         order["time"],
-        float(order["price"]),
+        "inBar",
         "circle",
         f"Відміненно ордер {order["name"]}",
         "blue",
@@ -35,8 +35,8 @@ def close_order(order):
 
     archive_orders.loc[len(archive_orders)] = [
         order["time"],
-        float(order["price"]),
-        f"{"arrow_up" if order["profit"] else "arrow_down"}",
+        f"{"belowBar" if order["profit"] else "aboveBar"}",
+        f"{"arrowUp" if order["profit"] else "arrowDown"}",
         f"Закрито ордер {order["name"]}",
         f"{"green" if order["profit"] else "red"}",
     ]
@@ -78,7 +78,7 @@ def check_orders(from_time, to_time, candle):
                     active_orders.append(curr_order)
                     archive_orders.loc[len(archive_orders)] = [
                         curr_order["time"],
-                        float(curr_order["price"]),
+                        "inBar",
                         "square",
                         f"Відкрито ордер {curr_order["name"]}",
                         "orange",
@@ -96,7 +96,7 @@ def check_orders(from_time, to_time, candle):
                     active_orders.append(curr_order)
                     archive_orders.loc[len(archive_orders)] = [
                         curr_order["time"],
-                        float(curr_order["price"]),
+                        "inBar",
                         "square",
                         f"Відкрито ордер {curr_order["name"]}",
                         "orange",

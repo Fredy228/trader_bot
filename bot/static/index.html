@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Chart</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+
+<body>
+    <div id="chart" style="height:100vh; width: 100vw;"></div>
+
+    <script type="module">
+        const chart = LightweightCharts.createChart(document.getElementById('chart'));
+
+        const candleSeries = chart.addSeries(LightweightCharts.CandlestickSeries, {
+            upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+            wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+        });
+
+        const trendSeries = chart.addSeries(LightweightCharts.LineSeries, { color: '#2962FF' });
+
+        fetch('http://10.211.55.5:8080/data', { method: "GET" })
+            .then(r => r.json())
+            .then(({ candles, trend, markers }) => {
+
+                candleSeries.setData(candles);
+                trendSeries.setData(trend);
+                LightweightCharts.createSeriesMarkers(candleSeries, markers)
+                // chart.timeScale().fitContent();
+            });
+    </script>
+</body>
+
+</html>
