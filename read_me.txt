@@ -9,6 +9,7 @@ import pytz
 # BASE SETTINGS
 DEBUG_MODE = 0  # 1 - on, 0 - off
 MODE = "test"  # "test" or "prod"
+IP_PY_SERVER = "10.211.55.5"
 
 STRATEGY = 1
 SYMBOL = "EURUSD"

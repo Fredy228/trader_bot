@@ -57,7 +57,7 @@ if __name__ == "__main__":
         print("\nПомилка:")
         print(f"{type(e).__name__}: {e}")
         logger.error(f"{type(e).__name__}: {e}")
-        traceback.print_exc()
+        logger.error(traceback.format_exc())
 
         mt5.shutdown()
         sys.exit(1)

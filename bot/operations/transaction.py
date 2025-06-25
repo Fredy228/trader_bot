@@ -1,6 +1,7 @@
 import MetaTrader5 as mt5
 from decimal import Decimal, ROUND_HALF_UP
 import pandas as pd
+import traceback
 
 from config import START_BALANCE, SYMBOL, DEBUG_MODE, FROM_DATE
 from services.round_decimal import round_decimal
@@ -80,14 +81,21 @@ def transaction_test(order, open_price):
             loss_sum += amount
 
         balance += amount
+        is_duplicate = (
+            len(balance_df) > 0
+            and balance_df.iloc[len(balance_df) - 1]["time"] == order["time"]
+        )
+
         balance_df.loc[len(balance_df)] = [
             order["time"],
             float(balance),
         ]
+        logger.info(f"Баланс: {float(balance)} {order["time"]} dupl({is_duplicate})")
 
         return True
     except Exception as e:
-        logger.info(f"Помилка при виконанні транзакції: {e}")
+        logger.error(f"Помилка при виконанні транзакції: {type(e).__name__}: {e}")
+        logger.error(traceback.format_exc())
         return False
 
 
@@ -103,8 +111,5 @@ def get_balance():
 
 def get_time_line_balance():
     global balance_df
-
-    if DEBUG_MODE == 1:
-        print(balance_df)
 
     return balance_df
