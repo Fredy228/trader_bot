@@ -29,11 +29,24 @@
             .then(r => r.json())
             .then(({ candles, trend, markers, balance }) => {
 
-                console.log(balance)
+                function findDuplicates(arr) {
+                const count = new Map();
+
+                // Подсчёт количества повторений для каждого time
+                for (const item of arr) {
+                    count.set(item.time, (count.get(item.time) || 0) + 1);
+                }
+
+                // Отбор объектов с дублирующимся time
+                return arr.filter((item) => count.get(item.time) > 1);
+                }
+
+                const duplicates = findDuplicates(balance);
+                console.log(duplicates);
 
                 candleSeries.setData(candles);
                 trendSeries.setData(trend);
-                balanceSeries.setData(balance.filter(p => p.time != null && p.value != null));
+                balanceSeries.setData(balance);
                 LightweightCharts.createSeriesMarkers(candleSeries, markers)
                 chartBalance.timeScale().fitContent();
             });

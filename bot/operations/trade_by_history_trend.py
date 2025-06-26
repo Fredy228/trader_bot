@@ -29,3 +29,8 @@ def trade_by_history_trend(level_up, level_down, direction, time):
 def get_deferred_orders():
     global deferred_orders
     return deferred_orders
+
+
+def clear_deferred_orders():
+    global deferred_orders
+    deferred_orders = []

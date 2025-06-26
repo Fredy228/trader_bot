@@ -86,7 +86,7 @@ def transaction_test(order, open_price):
             and balance_df.iloc[len(balance_df) - 1]["time"] == order["time"]
         )
 
-        balance_df.loc[len(balance_df)] = [
+        balance_df.loc[len(balance_df) - 1 if is_duplicate else len(balance_df)] = [
             order["time"],
             float(balance),
         ]
@@ -111,5 +111,8 @@ def get_balance():
 
 def get_time_line_balance():
     global balance_df
+
+    balance_df["time"] = pd.to_datetime(balance_df["time"])
+    balance_df = balance_df.sort_values(by="time").reset_index(drop=True)
 
     return balance_df
