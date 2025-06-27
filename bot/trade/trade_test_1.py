@@ -15,6 +15,8 @@ def trade_test_1(df):
     prev_idx_up = 0
     level_down = None
     prev_idx_down = 0
+    level_up_copy = None
+    level_down_copy = None
     trend = pd.DataFrame(columns=["time", "trend"])
     len_df = len(df)
 
@@ -124,11 +126,6 @@ def trade_test_1(df):
             is_broken_up = update_up_level(i - 2, i)
 
             if is_broken_up:
-                if direction == "DOWN":
-                    is_change_trend = True
-                    logger.info(f"Зміна тренду на UP {time}")
-                direction = "UP"
-
                 down_new_level = None
                 idx_down_level = 0
                 for l in range(prev_idx_up, level_up["idx"] + 1):
@@ -141,14 +138,20 @@ def trade_test_1(df):
                     "idx": idx_down_level,
                 }
 
+                level_up_copy = level_up
+
+                if direction == "DOWN":
+                    logger.info(f"Зміна тренду на UP {time}")
+                    is_change_trend = True
+                    level_down_copy = level_down
+                else:
+                    logger.info(f"Продовження тренду UP {time}")
+                direction = "UP"
+
         else:
             is_broken_down = update_down_level(i - 2, i)
 
             if is_broken_down:
-                if direction == "UP":
-                    is_change_trend = True
-                    logger.info(f"Зміна тренду на DOWN {time}")
-                direction = "DOWN"
 
                 up_new_level = None
                 idx_up_level = 0
@@ -162,7 +165,21 @@ def trade_test_1(df):
                     "idx": idx_up_level,
                 }
 
-        if level_down is None or level_up is None:
+                level_down_copy = level_down
+
+                if direction == "UP":
+                    is_change_trend = True
+                    level_up_copy = level_up
+                    logger.info(f"Зміна тренду на DOWN {time}")
+                    # создать переменную которая будет дублировать уровень чисто для транзакций
+                else:
+                    logger.info(f"Продовження тренду DOWN {time}")
+                direction = "DOWN"
+
+        # if level_down is None or level_up is None:
+        #     continue
+
+        if level_down_copy is None or level_up_copy is None:
             continue
 
         if not is_change_trend:

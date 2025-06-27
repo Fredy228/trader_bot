@@ -43,7 +43,9 @@ def show_static_statistic(df, trend=None, markers=None, balance_history=None):
                 "text": row["text"],
                 "position": row["position"],
             }
-            for _, row in markers.iterrows()
+            for _, row in markers.sort_values(by="time")
+            .reset_index(drop=True)
+            .iterrows()
         ]
 
         balance_js = [
