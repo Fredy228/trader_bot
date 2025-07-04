@@ -33,20 +33,33 @@ def get_contract_size():
 
     trade_contract_size = Decimal(str(symbol_info.trade_contract_size))
 
-    return trade_contract_size
+    if trade_contract_size is None or trade_contract_size == 0:
+        logger.info(f"Розмір контракту: 1")
+        return Decimal("1")
+
+    logger.info(f"Розмір контракту: {trade_contract_size}")
+
+    return Decimal(str(trade_contract_size))
 
 
 def calc_lot(type="BUY", stop_loss=0, open_price=0):
-    global balance
+    global balance, MAX_LOT
+
+    if stop_loss == 0 or open_price == 0:
+        raise ValueError("СЛ та open_price дорівнюють 0")
 
     contract_size = get_contract_size()
 
     if type == "BUY":
         lot = (balance * Decimal("0.01")) / ((open_price - stop_loss) * contract_size)
+        # if lot > MAX_LOT:
+        #     return MAX_LOT
         return lot
 
     elif type == "SELL":
         lot = (balance * Decimal("0.01")) / ((stop_loss - open_price) * contract_size)
+        # if lot < MAX_LOT * -1:
+        #     return MAX_LOT * -1
         return lot
 
     else:
@@ -57,22 +70,24 @@ def transaction_test(order, open_price):
     global balance, balances_line, time_line, profit_sum, loss_sum, balance_df
 
     contract_size = get_contract_size()
+    sl_up = round_decimal(order["level_up"], level="0.0000001")
+    sl_down = round_decimal(order["level_down"], level="0.0000001")
 
     try:
         amount = 0
         if order["type"] == "BUY":
-            lot = round_decimal(calc_lot("BUY", order["level_down"], open_price))
+            lot = round_decimal(calc_lot("BUY", sl_down, open_price))
             points = (order["price"] - open_price) * contract_size
             amount = lot * round_decimal(points)
             logger.info(
-                f"order: {order['name']}, type: buy, amount: {amount}, lot: {lot}"
+                f"order: {order['name']}, SL: {sl_down}, open: {open_price}, amount: {amount}, lot: {lot}, points: {points}"
             )
         elif order["type"] == "SELL":
-            lot = round_decimal(calc_lot("SELL", order["level_up"], open_price))
+            lot = round_decimal(calc_lot("SELL", sl_up, open_price))
             points = (open_price - order["price"]) * contract_size
             amount = lot * round_decimal(points)
             logger.info(
-                f"order: {order['name']}, type: sell, amount: {amount}, lot: {lot}"
+                f"order: {order['name']}, SL: {sl_up}, open: {open_price}, amount: {amount}, lot: {lot}, points: {points}"
             )
 
         if amount > 0:

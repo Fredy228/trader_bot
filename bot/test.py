@@ -10,11 +10,11 @@ from config import SYMBOL
 connect()
 
 time_from = datetime(
-    2025, 5, 27, 10, 0, tzinfo=pytz.timezone("Etc/UTC")
+    2025, 5, 27, 0, 0, tzinfo=pytz.timezone("Etc/UTC")
 )  # YYYY, MM, DD, HH, MM
 
 time_to = datetime(
-    2025, 5, 27, 11, 0, tzinfo=pytz.timezone("Etc/UTC")
+    2025, 5, 27, 10, 0, tzinfo=pytz.timezone("Etc/UTC")
 )  # YYYY, MM, DD, HH, MM
 
 ticks = mt5.copy_ticks_range(SYMBOL, time_from, time_to, mt5.COPY_TICKS_ALL)

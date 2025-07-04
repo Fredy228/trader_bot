@@ -1,4 +1,4 @@
-version - 2.2.2
+version - 2.3.1
 
 config.py (./bot/config.py)
 -------------------------------
