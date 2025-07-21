@@ -1,23 +1,18 @@
-import os
 import sqlite3
+from pathlib import Path
 
 from database.migration import migration
 
-appdata_path = os.environ.get("AppData")
-
-db_dir = os.path.join(appdata_path, "TradingBot")
-db_path = os.path.join(db_dir, "database.db")
-
-os.makedirs(db_dir, exist_ok=True)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DB_PATH = PROJECT_ROOT / "database.db"
 
 
 def connect_db():
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     return conn, cursor
 
 
-def initialisation_db():
-    conn, cursor = connect_db()
+def initialisation_db(conn, cursor):
     migration(conn, cursor)
     conn.close()

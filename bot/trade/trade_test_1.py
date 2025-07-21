@@ -43,19 +43,6 @@ def trade_test_1(df):
         is_up = open_price < close_price
         is_change_trend = False
 
-        if i < len(df) - 2:
-            check_orders(
-                time,
-                df.iloc[i + 1]["time"],
-                {
-                    "open": open_price,
-                    "close": close_price,
-                    "high": high,
-                    "low": low,
-                    "time": time,
-                },
-            )
-
         # Check patterns
         if not check_patterns(prev_prev_row, prev_row, curr_row):
             continue
@@ -175,6 +162,19 @@ def trade_test_1(df):
                 else:
                     logger.info(f"Продовження тренду DOWN {time}")
                 direction = "DOWN"
+
+        if i < len(df) - 2:
+            check_orders(
+                time,
+                df.iloc[i + 1]["time"],
+                {
+                    "open": open_price,
+                    "close": close_price,
+                    "high": high,
+                    "low": low,
+                    "time": time,
+                },
+            )
 
         # if level_down is None or level_up is None:
         #     continue

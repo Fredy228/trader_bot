@@ -108,6 +108,7 @@ def check_orders(from_time, to_time, candle):
                     )
                     cancel_order(curr_order)
                     deferred_orders.remove(order)
+            
 
                 if tick_bid <= order["price"]:  # Open order
                     logger.info(

@@ -9,6 +9,7 @@ from common.symbol import check_symbol
 from mode.strategy_1.test_1 import test_1
 from mode.strategy_1.prod_strategy_1 import prod_strategy_1
 from services.logger import init_logging, logger
+from database.connection import connect_db, initialisation_db
 
 from config import (
     TIMEFRAME,
@@ -24,6 +25,9 @@ if __name__ == "__main__":
 
     logger.info("Запуск програми...")
     print("Запуск програми...")
+
+    conn, cursor = connect_db()
+    initialisation_db(conn, cursor)
 
     connect()
     output_account_info()

@@ -6,3 +6,4 @@ __pycache__
 .VSCodeCounter
 app.log
 main.html
+database.db
