@@ -10,12 +10,11 @@ def create_order(order_data: OrderDTO) -> None:
         cursor.execute(
             """
             --sql
-            INSERT INTO orders (name, time, type, price, level_up, level_down, status)
+            INSERT INTO orders (time, type, price, level_up, level_down, status)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             --end-sql
         """,
             (
-                order_data["name"],
                 order_data["time"],
                 order_data["type"],
                 order_data["price"],
@@ -36,13 +35,12 @@ def get_order_by_id(order_id: int) -> OrderEntity | None:
         if row:
             return OrderEntity(
                 id=row[0],
-                name=row[1],
-                time=row[2],
-                type=row[3],
-                price=row[4],
-                level_up=row[5],
-                level_down=row[6],
-                status=row[7],
+                time=row[1],
+                type=row[2],
+                price=row[3],
+                level_up=row[4],
+                level_down=row[5],
+                status=row[6],
             )
         return None
     except sqlite3.Error as e:
@@ -50,20 +48,30 @@ def get_order_by_id(order_id: int) -> OrderEntity | None:
         return None
 
 
-def get_orders() -> list[OrderEntity]:
+def get_orders(filters: dict = None) -> list[OrderEntity]:
     try:
-        cursor.execute("SELECT * FROM orders")
+        query = "SELECT * FROM orders"
+        values = []
+
+        if filters:
+            conditions = []
+            for key, value in filters.items():
+                conditions.append(f"{key} = ?")
+                values.append(value)
+            query += " WHERE " + " AND ".join(conditions)
+
+        cursor.execute(query, values)
         rows = cursor.fetchall()
+
         return [
             OrderEntity(
                 id=row[0],
-                name=row[1],
-                time=row[2],
-                type=row[3],
-                price=row[4],
-                level_up=row[5],
-                level_down=row[6],
-                status=row[7],
+                time=row[1],
+                type=row[2],
+                price=row[3],
+                level_up=row[4],
+                level_down=row[5],
+                status=row[6],
             )
             for row in rows
         ]
@@ -83,3 +91,11 @@ def update_order(order_id: int, order_data: OrderDTO) -> None:
         conn.commit()
     except sqlite3.Error as e:
         logger.error(f"An error occurred while updating order: {e}")
+
+
+def delete_order(order_id: int) -> None:
+    try:
+        cursor.execute("DELETE FROM orders WHERE id = ?", (order_id,))
+        conn.commit()
+    except sqlite3.Error as e:
+        logger.error(f"An error occurred while deleting order: {e}")

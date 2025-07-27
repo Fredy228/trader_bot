@@ -2,7 +2,6 @@ from typing import TypedDict, Literal
 
 
 class OrderArchiveDTO(TypedDict):
-    name: str
     time: int
     type: Literal["BUY", "SELL"]
     price: str

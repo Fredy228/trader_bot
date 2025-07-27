@@ -163,30 +163,25 @@ def trade_test_1(df):
                     logger.info(f"Продовження тренду DOWN {time}")
                 direction = "DOWN"
 
-        if i < len(df) - 2:
-            check_orders(
-                time,
-                df.iloc[i + 1]["time"],
-                {
-                    "open": open_price,
-                    "close": close_price,
-                    "high": high,
-                    "low": low,
-                    "time": time,
-                },
-            )
-
         # if level_down is None or level_up is None:
         #     continue
 
         if level_down_copy is None or level_up_copy is None:
             continue
 
-        if not is_change_trend:
-            continue
-
         trade_by_history_trend(
-            Decimal(level_up["level"]), Decimal(level_down["level"]), direction, time
+            level_up=Decimal(level_up["level"]),
+            level_down=Decimal(level_down["level"]),
+            direction=direction,
+            is_change_trend=is_change_trend,
+            candle={
+                "open": open_price,
+                "close": close_price,
+                "high": high,
+                "low": low,
+                "time": time,
+                "next_time": df.iloc[i + 1]["time"],
+            },
         )
 
     markers = get_orders()

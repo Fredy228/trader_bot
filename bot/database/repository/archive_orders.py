@@ -10,12 +10,11 @@ def create_archive_order(order_data: OrderArchiveDTO) -> None:
         cursor.execute(
             """
             --sql
-            INSERT INTO orders (name, time, type, price, status, profit)
+            INSERT INTO orders (time, type, price, status, profit)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             --end-sql
         """,
             (
-                order_data["name"],
                 order_data["time"],
                 order_data["type"],
                 order_data["price"],
@@ -35,12 +34,11 @@ def get_archive_order_by_id(order_id: int) -> OrderArchiveEntity | None:
         if row:
             return OrderArchiveEntity(
                 id=row[0],
-                name=row[1],
-                time=row[2],
-                type=row[3],
-                price=row[4],
-                status=row[5],
-                profit=row[6],
+                time=row[1],
+                type=row[2],
+                price=row[3],
+                status=row[4],
+                profit=row[5],
             )
         return None
     except sqlite3.Error as e:
@@ -55,12 +53,11 @@ def get_archive_orders() -> list[OrderArchiveEntity]:
         return [
             OrderArchiveEntity(
                 id=row[0],
-                name=row[1],
-                time=row[2],
-                type=row[3],
-                price=row[4],
-                status=row[5],
-                profit=row[6],
+                time=row[1],
+                type=row[2],
+                price=row[3],
+                status=row[4],
+                profit=row[5],
             )
             for row in rows
         ]

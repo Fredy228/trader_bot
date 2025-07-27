@@ -2,7 +2,6 @@ order_table_create = """
 --sql
 CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
     time INTEGER NOT NULL,
     type TEXT CHECK(status IN ('BUY', 'SELL')) NOT NULL,
     price TEXT NOT NULL,
