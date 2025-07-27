@@ -72,7 +72,7 @@ def get_orders() -> list[OrderEntity]:
         return []
 
 
-def update_order(order_id: int, order_data) -> None:
+def update_order(order_id: int, order_data: OrderDTO) -> None:
     try:
         set_clause = ", ".join([f"{key} = ?" for key in order_data])
         values = list(order_data.values())
