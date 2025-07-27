@@ -3,7 +3,7 @@ from decimal import Decimal
 from services.logger import logger
 from database.types.orders import OrderDTO
 from database.repository.orders import create_order, get_orders, update_order
-from database.services.orders_service import open_order_event
+from database.services.orders_service import open_order_event, cancel_order_event
 from operations.ticks import get_ticks
 
 from config import SYMBOL
@@ -58,17 +58,27 @@ def trade_by_history_trend(level_up, level_down, candle, direction, is_change_tr
             is_buy = order["type"] == "BUY"
             is_sell = order["type"] == "SELL"
 
-            # CANCEL ORDER
-            cancel_condition = (is_buy and tick_bid > order["level_up"]) or (
+            # === UPDATE ORDER ===
+            update_condition = (is_buy and tick_bid > order["level_up"]) or (
                 is_sell and tick_bid < order["level_down"]
             )
-            if cancel_condition:
+            if update_condition:
+                new_level_up = tick_bid if is_buy else order["level_up"]
+                new_level_down = tick_bid if is_sell else order["level_down"]
+                update_order(
+                    order["id"],
+                    {
+                        "level_up": new_level_up,
+                        "level_down": new_level_down,
+                        "price": level_down + (level_up - level_down) * Decimal("0.5"),
+                    },
+                )
                 logger.info(
-                    f"Відмінено order {order['type']}_{order["id"]} {tick_log_info}"
+                    f"Оновленно order {order['type']}_{order["id"]} {tick_log_info}"
                 )
                 continue
 
-            # OPEN ORDER
+            # === OPEN ORDER ===
             open_condition = (is_buy and tick_bid <= order["price"]) or (
                 is_sell and tick_bid >= order["price"]
             )
@@ -78,3 +88,15 @@ def trade_by_history_trend(level_up, level_down, candle, direction, is_change_tr
                 logger.info(
                     f"Відкрито order {order['type']}_{order["id"]} {tick_log_info}"
                 )
+                continue
+
+            # === CANCEL ORDER ===
+            cancel_condition = (is_change_trend and is_buy and direction == "UP") or (
+                is_change_trend and is_sell and direction == "DOWN"
+            )
+            if cancel_condition:
+                cancel_order_event(curr_order)
+                logger.info(
+                    f"Скасовано order {order['type']}_{order["id"]} {tick_log_info}"
+                )
+                continue
