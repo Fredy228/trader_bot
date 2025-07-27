@@ -2,15 +2,15 @@ import sqlite3
 
 from database.connection import conn, cursor
 from services.logger import logger
-from database.types.orders import OrderDTO, OrderEntity
+from database.types.orders_archive import OrderArchiveDTO, OrderArchiveEntity
 
 
-def create_order(order_data: OrderDTO) -> None:
+def create_archive_order(order_data: OrderArchiveDTO) -> None:
     try:
         cursor.execute(
             """
             --sql
-            INSERT INTO orders (name, time, type, price, level_up, level_down, status)
+            INSERT INTO orders (name, time, type, price, status, profit)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             --end-sql
         """,
@@ -19,9 +19,8 @@ def create_order(order_data: OrderDTO) -> None:
                 order_data["time"],
                 order_data["type"],
                 order_data["price"],
-                order_data["level_up"],
-                order_data["level_down"],
                 order_data["status"],
+                order_data["profit"],
             ),
         )
         conn.commit()
@@ -29,20 +28,19 @@ def create_order(order_data: OrderDTO) -> None:
         logger.error(f"An error occurred while creating order: {e}")
 
 
-def get_order_by_id(order_id: int) -> OrderEntity | None:
+def get_archive_order_by_id(order_id: int) -> OrderArchiveEntity | None:
     try:
         cursor.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
         row = cursor.fetchone()
         if row:
-            return OrderEntity(
+            return OrderArchiveEntity(
                 id=row[0],
                 name=row[1],
                 time=row[2],
                 type=row[3],
                 price=row[4],
-                level_up=row[5],
-                level_down=row[6],
-                status=row[7],
+                status=row[5],
+                profit=row[6],
             )
         return None
     except sqlite3.Error as e:
@@ -50,20 +48,19 @@ def get_order_by_id(order_id: int) -> OrderEntity | None:
         return None
 
 
-def get_orders() -> list[OrderEntity]:
+def get_archive_orders() -> list[OrderArchiveEntity]:
     try:
         cursor.execute("SELECT * FROM orders")
         rows = cursor.fetchall()
         return [
-            OrderEntity(
+            OrderArchiveEntity(
                 id=row[0],
                 name=row[1],
                 time=row[2],
                 type=row[3],
                 price=row[4],
-                level_up=row[5],
-                level_down=row[6],
-                status=row[7],
+                status=row[5],
+                profit=row[6],
             )
             for row in rows
         ]
@@ -72,7 +69,7 @@ def get_orders() -> list[OrderEntity]:
         return []
 
 
-def update_order(order_id: int, order_data) -> None:
+def update_archive_order(order_id: int, order_data: OrderArchiveDTO) -> None:
     try:
         set_clause = ", ".join([f"{key} = ?" for key in order_data])
         values = list(order_data.values())

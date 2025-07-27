@@ -9,7 +9,7 @@ from common.symbol import check_symbol
 from mode.strategy_1.test_1 import test_1
 from mode.strategy_1.prod_strategy_1 import prod_strategy_1
 from services.logger import init_logging, logger
-from database.connection import connect_db, initialisation_db
+from database.connection import conn
 
 from config import (
     TIMEFRAME,
@@ -26,9 +26,6 @@ if __name__ == "__main__":
     logger.info("Запуск програми...")
     print("Запуск програми...")
 
-    conn, cursor = connect_db()
-    initialisation_db(conn, cursor)
-
     connect()
     output_account_info()
     check_symbol()
@@ -42,6 +39,7 @@ if __name__ == "__main__":
         logger.info("Програма зупинена.")
         print("\nПрограма зупиняється...")
         print("Виконується відключення від Metatrader 5...")
+        conn.close()
         mt5.shutdown()
         print("Успішно відключенно. Можна закривати програму.")
         sys.exit(0)
@@ -55,6 +53,7 @@ if __name__ == "__main__":
             test_1()
         else:
             print("\Помилка: невірний режим роботи. Вкажіть 'test' або 'prod'.\n")
+            conn.close()
             mt5.shutdown()
 
     except Exception as e:
@@ -63,9 +62,11 @@ if __name__ == "__main__":
         logger.error(f"{type(e).__name__}: {e}")
         logger.error(traceback.format_exc())
 
+        conn.close()
         mt5.shutdown()
         sys.exit(1)
 
     finally:
         print("Виконується відключення від Metatrader 5...")
+        conn.close()
         mt5.shutdown()
