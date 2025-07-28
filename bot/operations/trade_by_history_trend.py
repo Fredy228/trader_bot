@@ -41,25 +41,28 @@ def trade_by_history_trend(
             is_sell = order["type"] == "SELL"
             #  UPDATE ORDER
             update_condition = (
-                is_buy and direction == "UP" and tick_bid > curr_order["level_up"]
+                is_buy and direction == "UP" and level_up > curr_order["level_up"]
             ) or (
-                is_sell and direction == "DOWN" and tick_bid < curr_order["level_down"]
+                is_sell
+                and direction == "DOWN"
+                and level_down < curr_order["level_down"]
             )
             if update_condition:
-                new_level_up = tick_bid if is_buy else curr_order["level_up"]
-                new_level_down = tick_bid if is_sell else curr_order["level_down"]
+                new_level_up = level_up if is_buy else curr_order["level_up"]
+                new_level_down = level_down if is_sell else curr_order["level_down"]
                 update_order(
                     order["id"],
                     {
                         "level_up": str(new_level_up),
                         "level_down": str(new_level_down),
                         "price": str(
-                            level_down + (level_up - level_down) * Decimal("0.5")
+                            new_level_down
+                            + (new_level_up - new_level_down) * Decimal("0.5")
                         ),
                     },
                 )
                 logger.info(
-                    f"Оновленно order: {order['type']}_{order["id"]}, TP: {new_level_up if is_buy else new_level_down}, SL: {new_level_down if is_buy else new_level_up}, {tick_log_info}"
+                    f"Оновленно order: {order['type']}_{order["id"]}, TP: {new_level_up if is_buy else new_level_down}, SL: {new_level_down if is_buy else new_level_up}, {time}"
                 )
 
     if is_change_trend:
