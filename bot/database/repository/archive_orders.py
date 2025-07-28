@@ -10,8 +10,8 @@ def create_archive_order(order_data: OrderArchiveDTO) -> None:
         cursor.execute(
             """
             --sql
-            INSERT INTO orders (time, type, price, status, profit)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO archive_orders (time, type, price, status, profit, id_order)
+            VALUES (?, ?, ?, ?, ?, ?)
             --end-sql
         """,
             (
@@ -20,16 +20,17 @@ def create_archive_order(order_data: OrderArchiveDTO) -> None:
                 order_data["price"],
                 order_data["status"],
                 order_data["profit"],
+                order_data["id_order"],
             ),
         )
         conn.commit()
     except sqlite3.Error as e:
-        logger.error(f"An error occurred while creating order: {e}")
+        logger.error(f"An error occurred while creating archive order: {e}")
 
 
 def get_archive_order_by_id(order_id: int) -> OrderArchiveEntity | None:
     try:
-        cursor.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
+        cursor.execute("SELECT * FROM archive_orders WHERE id = ?", (order_id,))
         row = cursor.fetchone()
         if row:
             return OrderArchiveEntity(
@@ -39,16 +40,17 @@ def get_archive_order_by_id(order_id: int) -> OrderArchiveEntity | None:
                 price=row[3],
                 status=row[4],
                 profit=row[5],
+                id_order=row[6],
             )
         return None
     except sqlite3.Error as e:
-        logger.error(f"An error occurred while getting order: {e}")
+        logger.error(f"An error occurred while getting archive order: {e}")
         return None
 
 
 def get_archive_orders() -> list[OrderArchiveEntity]:
     try:
-        cursor.execute("SELECT * FROM orders")
+        cursor.execute("SELECT * FROM archive_orders")
         rows = cursor.fetchall()
         return [
             OrderArchiveEntity(
@@ -58,11 +60,12 @@ def get_archive_orders() -> list[OrderArchiveEntity]:
                 price=row[3],
                 status=row[4],
                 profit=row[5],
+                id_order=row[6],
             )
             for row in rows
         ]
     except sqlite3.Error as e:
-        logger.error(f"An error occurred while getting orders: {e}")
+        logger.error(f"An error occurred while getting archive orders: {e}")
         return []
 
 
@@ -72,8 +75,8 @@ def update_archive_order(order_id: int, order_data: OrderArchiveDTO) -> None:
         values = list(order_data.values())
         values.append(order_id)
 
-        query = f"UPDATE orders SET {set_clause} WHERE id = ?"
+        query = f"UPDATE archive_orders SET {set_clause} WHERE id = ?"
         cursor.execute(query, values)
         conn.commit()
     except sqlite3.Error as e:
-        logger.error(f"An error occurred while updating order: {e}")
+        logger.error(f"An error occurred while updating archive order: {e}")

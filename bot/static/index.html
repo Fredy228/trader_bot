@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Chart</title>
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-</head>
+  </head>
 
-<body>
-    <div id="chart" style="height:50vh; width: 100vw;"></div>
-    <div id="chart-balance" style="height:50vh; width: 100vw;"></div>
+  <body>
+    <div id="chart" style="height: 50vh; width: 100vw"></div>
+    <div id="chart-balance" style="height: 50vh; width: 100vw"></div>
     <div id="tooltip"></div>
 
     <script type="module">
-        const chart = LightweightCharts.createChart(document.getElementById('chart'));
-        const chartBalance = LightweightCharts.createChart(document.getElementById('chart-balance'));
-        const tooltip = document.getElementById('tooltip');
-        tooltip.style = `
+      const chart = LightweightCharts.createChart(
+        document.getElementById("chart")
+      );
+      const chartBalance = LightweightCharts.createChart(
+        document.getElementById("chart-balance")
+      );
+      const tooltip = document.getElementById("tooltip");
+      tooltip.style = `
             position: absolute;
             display: none;
             background-color: rgba(255, 255, 255, 0.9);
@@ -29,30 +32,47 @@
             z-index: 1000;
         `;
 
-        const candleSeries = chart.addSeries(LightweightCharts.CandlestickSeries, {
-            upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
-            wickUpColor: '#26a69a', wickDownColor: '#ef5350',
-        });
+      const candleSeries = chart.addSeries(
+        LightweightCharts.CandlestickSeries,
+        {
+          upColor: "#26a69a",
+          downColor: "#ef5350",
+          borderVisible: false,
+          wickUpColor: "#26a69a",
+          wickDownColor: "#ef5350",
+        }
+      );
 
-        const trendSeries = chart.addSeries(LightweightCharts.LineSeries, { color: '#2962FF' });
+      const trendSeries = chart.addSeries(LightweightCharts.LineSeries, {
+        color: "#2962FF",
+      });
 
-        const balanceSeries = chartBalance.addSeries(LightweightCharts.AreaSeries, { lineColor: '#2962FF', topColor: '#2962FF', bottomColor: 'rgba(41, 98, 255, 0.28)' });
+      const balanceSeries = chartBalance.addSeries(
+        LightweightCharts.AreaSeries,
+        {
+          lineColor: "#2962FF",
+          topColor: "#2962FF",
+          bottomColor: "rgba(41, 98, 255, 0.28)",
+        }
+      );
 
-        chart.subscribeCrosshairMove(param => {
-            if (!param || !param.time || !param.seriesData.has(candleSeries)) {
-                tooltip.style.display = 'none';
-                return;
-            }
+      chart.subscribeCrosshairMove((param) => {
+        if (!param || !param.time || !param.seriesData.has(candleSeries)) {
+          tooltip.style.display = "none";
+          return;
+        }
 
-            const candle = param.seriesData.get(candleSeries);
-            tooltip.innerHTML = `
-                <strong>Time:</strong> ${new Date(param.time * 1000).toLocaleString('uk-UA', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
+        const candle = param.seriesData.get(candleSeries);
+        tooltip.innerHTML = `
+                <strong>Time:</strong> ${new Date(
+                  param.time * 1000
+                ).toLocaleString("uk-UA", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
                 })}<br>
                 <strong>Open:</strong> ${candle.open}<br>
                 <strong>High:</strong> ${candle.high}<br>
@@ -60,38 +80,37 @@
                 <strong>Close:</strong> ${candle.close}
             `;
 
-            tooltip.style.left = 15 + 'px';
-            tooltip.style.top = 15 + 'px';
-            tooltip.style.display = 'block';
+        tooltip.style.left = 15 + "px";
+        tooltip.style.top = 15 + "px";
+        tooltip.style.display = "block";
+      });
+
+      fetch(`http://${location.host}/data`, { method: "GET" })
+        .then((r) => r.json())
+        .then(({ candles, trend, orders, balance }) => {
+          function findDuplicates(arr) {
+            const count = new Map();
+
+            // Подсчёт количества повторений для каждого time
+            for (const item of arr) {
+              count.set(item.time, (count.get(item.time) || 0) + 1);
+            }
+
+            // Отбор объектов с дублирующимся time
+            return arr.filter((item) => count.get(item.time) > 1);
+          }
+
+          const duplicates = findDuplicates(balance);
+          console.log(balance);
+          console.log(duplicates);
+          console.log(orders);
+
+          candleSeries.setData(candles);
+          trendSeries.setData(trend);
+          balanceSeries.setData(balance);
+          // LightweightCharts.createSeriesMarkers(candleSeries, markers);
+          chartBalance.timeScale().fitContent();
         });
-
-
-        fetch(`http://${location.host}/data`, { method: "GET" })
-            .then(r => r.json())
-            .then(({ candles, trend, markers, balance }) => {
-
-                function findDuplicates(arr) {
-                const count = new Map();
-
-                // Подсчёт количества повторений для каждого time
-                for (const item of arr) {
-                    count.set(item.time, (count.get(item.time) || 0) + 1);
-                }
-
-                // Отбор объектов с дублирующимся time
-                return arr.filter((item) => count.get(item.time) > 1);
-                }
-
-                const duplicates = findDuplicates(balance);
-                console.log(duplicates);
-
-                candleSeries.setData(candles);
-                trendSeries.setData(trend);
-                balanceSeries.setData(balance);
-                LightweightCharts.createSeriesMarkers(candleSeries, markers)
-                chartBalance.timeScale().fitContent();
-            });
     </script>
-</body>
-
+  </body>
 </html>

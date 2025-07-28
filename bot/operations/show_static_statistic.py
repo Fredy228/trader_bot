@@ -35,18 +35,17 @@ def show_static_statistic(df, trend=None, markers=None, balance_history=None):
             for _, row in trend.iterrows()
         ]
 
-        markers_js = [
-            {
-                "time": int(row["time"].timestamp()),
-                "color": row["color"],
-                "shape": row["marker"],
-                "text": row["text"],
-                "position": row["position"],
-            }
-            for _, row in markers.sort_values(by="time")
-            .reset_index(drop=True)
-            .iterrows()
-        ]
+        orders_js = dict()
+        for order in markers:
+            saved_order = orders_js.get(order["id_order"], {})
+
+            if order["status"] == "OPENED":
+                saved_order["openTime"] = order["time"]
+                saved_order["openPrice"] = order["price"]
+
+            if order["status"] == "CLOSED":
+                saved_order["closeTime"] = order["time"]
+                saved_order["closePrice"] = order["price"]
 
         balance_js = [
             {
@@ -60,7 +59,7 @@ def show_static_statistic(df, trend=None, markers=None, balance_history=None):
             {
                 "candles": candles,
                 "trend": trend_js,
-                "markers": markers_js,
+                "orders": sorted(orders_js.values(), key=lambda x: x["time"]),
                 "balance": balance_js,
             }
         )

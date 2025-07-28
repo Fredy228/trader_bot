@@ -5,13 +5,13 @@ from services.logger import logger
 from database.types.orders import OrderDTO, OrderEntity
 
 
-def create_order(order_data: OrderDTO) -> None:
+def create_order(order_data: OrderDTO) -> None | int:
     try:
         cursor.execute(
             """
             --sql
             INSERT INTO orders (time, type, price, level_up, level_down, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
             --end-sql
         """,
             (
@@ -24,8 +24,10 @@ def create_order(order_data: OrderDTO) -> None:
             ),
         )
         conn.commit()
+        return cursor.lastrowid
     except sqlite3.Error as e:
         logger.error(f"An error occurred while creating order: {e}")
+        return None
 
 
 def get_order_by_id(order_id: int) -> OrderEntity | None:

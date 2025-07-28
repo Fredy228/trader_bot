@@ -56,14 +56,11 @@ def calc_lot(type="BUY", stop_loss=0, open_price=0):
         #     return MAX_LOT
         return lot
 
-    elif type == "SELL":
+    if type == "SELL":
         lot = (balance * Decimal("0.01")) / ((stop_loss - open_price) * contract_size)
         # if lot < MAX_LOT * -1:
         #     return MAX_LOT * -1
         return lot
-
-    else:
-        raise ValueError("Не вірний тип ордера. Використовуй 'BUY' или 'SELL'.")
 
 
 def transaction_test(order, open_price):
@@ -72,22 +69,24 @@ def transaction_test(order, open_price):
     contract_size = get_contract_size()
     sl_up = round_decimal(order["level_up"], level="0.0000001")
     sl_down = round_decimal(order["level_down"], level="0.0000001")
+    open_price_rounded = round_decimal(open_price, level="0.0000001")
+    close_price_rounded = round_decimal(order["price"], level="0.0000001")
 
     try:
         amount = 0
         if order["type"] == "BUY":
-            lot = round_decimal(calc_lot("BUY", sl_down, open_price))
-            points = (order["price"] - open_price) * contract_size
+            lot = round_decimal(calc_lot("BUY", sl_down, open_price_rounded))
+            points = (close_price_rounded - open_price_rounded) * contract_size
             amount = lot * round_decimal(points)
             logger.info(
-                f"order: {order['name']}, SL: {sl_down}, open: {open_price}, amount: {amount}, lot: {lot}, points: {points}"
+                f"order: {order["type"]}_{order["id"]}, amount: {amount}, lot: {lot}, points: {points}"
             )
-        elif order["type"] == "SELL":
-            lot = round_decimal(calc_lot("SELL", sl_up, open_price))
-            points = (open_price - order["price"]) * contract_size
+        if order["type"] == "SELL":
+            lot = round_decimal(calc_lot("SELL", sl_up, open_price_rounded))
+            points = (open_price_rounded - close_price_rounded) * contract_size
             amount = lot * round_decimal(points)
             logger.info(
-                f"order: {order['name']}, SL: {sl_up}, open: {open_price}, amount: {amount}, lot: {lot}, points: {points}"
+                f"order: {order["type"]}_{order["id"]}, amount: {amount}, lot: {lot}, points: {points}"
             )
 
         if amount > 0:
@@ -105,7 +104,7 @@ def transaction_test(order, open_price):
             order["time"],
             float(balance),
         ]
-        logger.info(f"Баланс: {float(balance)} {order["time"]} dupl({is_duplicate})")
+        logger.info(f"Баланс: {float(balance)} {order["type"]}_{order["id"]}")
 
         return True
     except Exception as e:

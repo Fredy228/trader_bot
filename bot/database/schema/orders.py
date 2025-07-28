@@ -3,7 +3,7 @@ order_table_create = """
 CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time INTEGER NOT NULL,
-    type TEXT CHECK(status IN ('BUY', 'SELL')) NOT NULL,
+    type TEXT CHECK(type IN ('BUY', 'SELL')) NOT NULL,
     price TEXT NOT NULL,
     level_up TEXT NOT NULL,
     level_down TEXT NOT NULL,

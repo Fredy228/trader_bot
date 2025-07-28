@@ -3,10 +3,11 @@ archive_order_table_create = """
 CREATE TABLE IF NOT EXISTS archive_orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time INTEGER NOT NULL,
-    type TEXT CHECK(status IN ('BUY', 'SELL')) NOT NULL,
+    type TEXT CHECK(type IN ('BUY', 'SELL')) NOT NULL,
     price TEXT NOT NULL,
     status TEXT CHECK(status IN ('OPENED', 'CLOSED', 'CANCELED')) NOT NULL,
-    profit INTEGER
+    profit INTEGER,
+    id_order INTEGER
 );
 """
 

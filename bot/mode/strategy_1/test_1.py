@@ -6,6 +6,7 @@ from trade.trade_test_1 import trade_test_1
 from operations.show_static_statistic import show_static_statistic
 from operations.transaction import get_time_line_balance, get_balance
 from statistic.max_drawdown import calc_max_drawdown
+from database.repository.archive_orders import get_archive_orders
 
 from config import (
     SYMBOL,
@@ -31,13 +32,18 @@ def test_1():
 
     print("\nЙде торгівля...\n")
     logger.info("Йде торгівля...")
-    trend, markers = trade_test_1(df)
+    trend = trade_test_1(df)
     balance_history = get_time_line_balance()
     balance, profit_sum, loss_sum = get_balance()
+    markers = get_archive_orders()
 
-    profit_orders = markers[markers["marker"] == "arrowUp"]
-    loss_orders = markers[markers["marker"] == "arrowDown"]
-    cancel_orders = markers[markers["marker"] == "circle"]
+    profit_orders = [
+        m for m in markers if m.get("profit") == 1 and m.get("status") == "CLOSED"
+    ]
+    loss_orders = [
+        m for m in markers if m.get("profit") == 0 and m.get("status") == "CLOSED"
+    ]
+    cancel_orders = [m for m in markers if m.get("status") == "CANCELED"]
 
     max_drawdown = calc_max_drawdown(balance_history)
 

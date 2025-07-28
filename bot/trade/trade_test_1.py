@@ -4,7 +4,8 @@ import pandas as pd
 from services.logger import logger
 from operations.extremes import check_patterns
 from operations.trade_by_history_trend import trade_by_history_trend
-from operations.check_orders_test import check_orders, get_orders
+from services.round_decimal import round_decimal
+
 
 from config import DEBUG_MODE
 
@@ -27,7 +28,7 @@ def trade_test_1(df):
         bar = "#" * filled_length + "-" * (50 - filled_length)
         print(f"\r[{bar}] {percent:.1f}%", end="", flush=True)
 
-        if i < 2:
+        if i < 2 or i >= len_df - 2:
             continue
 
         prev_row = df.iloc[i - 1]
@@ -42,6 +43,7 @@ def trade_test_1(df):
 
         is_up = open_price < close_price
         is_change_trend = False
+        is_continue_trend = False
 
         # Check patterns
         if not check_patterns(prev_prev_row, prev_row, curr_row):
@@ -132,6 +134,7 @@ def trade_test_1(df):
                     is_change_trend = True
                     level_down_copy = level_down
                 else:
+                    is_continue_trend = True
                     logger.info(f"Продовження тренду UP {time}")
                 direction = "UP"
 
@@ -160,6 +163,7 @@ def trade_test_1(df):
                     logger.info(f"Зміна тренду на DOWN {time}")
                     # создать переменную которая будет дублировать уровень чисто для транзакций
                 else:
+                    is_continue_trend = True
                     logger.info(f"Продовження тренду DOWN {time}")
                 direction = "DOWN"
 
@@ -170,10 +174,11 @@ def trade_test_1(df):
             continue
 
         trade_by_history_trend(
-            level_up=Decimal(level_up["level"]),
-            level_down=Decimal(level_down["level"]),
+            level_up=round_decimal(Decimal(level_up["level"]), level="0.0000001"),
+            level_down=round_decimal(Decimal(level_down["level"]), level="0.0000001"),
             direction=direction,
             is_change_trend=is_change_trend,
+            is_continue_trend=is_continue_trend,
             candle={
                 "open": open_price,
                 "close": close_price,
@@ -184,6 +189,4 @@ def trade_test_1(df):
             },
         )
 
-    markers = get_orders()
-
-    return trend, markers
+    return trend
