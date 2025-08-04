@@ -79,14 +79,14 @@ def transaction_test(order, open_price):
             points = (close_price_rounded - open_price_rounded) * contract_size
             amount = lot * round_decimal(points)
             logger.info(
-                f"order: {order["type"]}_{order["id"]}, amount: {amount}, lot: {lot}, points: {points}"
+                f"order: {order["type"]}_{order["id"]}, open: {open_price_rounded}, close: {close_price_rounded} amount: {amount}, lot: {lot}, points: {points}"
             )
         if order["type"] == "SELL":
             lot = round_decimal(calc_lot("SELL", sl_up, open_price_rounded))
             points = (open_price_rounded - close_price_rounded) * contract_size
             amount = lot * round_decimal(points)
             logger.info(
-                f"order: {order["type"]}_{order["id"]}, amount: {amount}, lot: {lot}, points: {points}"
+                f"order: {order["type"]}_{order["id"]}, open: {open_price_rounded}, close: {close_price_rounded} amount: {amount}, amount: {amount}, lot: {lot}, points: {points}"
             )
 
         if amount > 0:

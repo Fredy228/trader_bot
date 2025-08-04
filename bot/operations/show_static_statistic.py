@@ -8,22 +8,22 @@ app = Flask(__name__)
 
 
 def show_static_statistic(df, trend=None, markers=None, balance_history=None):
-    try:
-        orders_js = dict()
-        for order in markers:
-            saved_order = orders_js.get(order["id_order"], {})
 
-            if order["status"] == "OPENED":
-                saved_order["openTime"] = order["time"]
-                saved_order["openPrice"] = order["price"]
-                orders_js[order["id_order"]] = saved_order
+    orders_js = dict()
+    for order in markers:
+        saved_order = orders_js.get(order["id_order"], {})
 
-            if order["status"] == "CLOSED":
-                saved_order["closeTime"] = order["time"]
-                saved_order["closePrice"] = order["price"]
-                orders_js[order["id_order"]] = saved_order
-    except Exception as e:
-        print(f"Error processing orders: {e}")
+        is_open = order["status"] == "OPENED"
+        is_closed = order["status"] == "CLOSED"
+
+        if is_closed:
+            saved_order["profit"] = order["profit"]
+
+        if is_open or is_closed:
+            saved_order["type"] = order["type"]
+            saved_order["openPrice" if is_open else "closePrice"] = order["price"]
+            saved_order["openTime" if is_open else "closeTime"] = order["time"]
+            orders_js[order["id_order"]] = saved_order
 
     candles = [
         {

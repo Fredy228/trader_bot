@@ -27,6 +27,7 @@ def trade_by_history_trend(
 ):
     global last_tick
     time = candle["time"]
+    candle_info = f"Candle: open: {candle['open']}, close: {candle['close']}, high: {candle['high']}, low: {candle['low']} {time}"
 
     deferred_orders = get_orders({"status": "DEFERRED"})
     active_orders = get_orders({"status": "OPENED"})
@@ -166,6 +167,7 @@ def trade_by_history_trend(
                 logger.info(
                     f"Stop loss {order['type']}_{order["id"]}, TP: {curr_order["level_up"] if is_buy else curr_order["level_down"]}, SL: {curr_order["level_down"] if is_buy else curr_order["level_up"]}, {tick_log_info}"
                 )
+                logger.info(candle_info)
                 continue
 
             #  TAKE PROFIT
@@ -178,4 +180,5 @@ def trade_by_history_trend(
                 logger.info(
                     f"Take profit {order['type']}_{order["id"]}, TP: {curr_order["level_up"] if is_buy else curr_order["level_down"]}, SL: {curr_order["level_down"] if is_buy else curr_order["level_up"]}, {tick_log_info}"
                 )
+                logger.info(candle_info)
                 continue

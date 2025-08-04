@@ -110,7 +110,7 @@
             if (!order.openTime || !order.closeTime) return;
 
             const line = chart.addSeries(LightweightCharts.LineSeries, {
-              color: order.closePrice >= order.openPrice ? "green" : "red",
+              color: order.profit === 1 ? "green" : "red",
               lineWidth: 2,
               priceLineVisible: false,
             });
