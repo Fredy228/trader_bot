@@ -45,6 +45,7 @@
 
       const trendSeries = chart.addSeries(LightweightCharts.LineSeries, {
         color: "#2962FF",
+        lineWidth: 1,
       });
 
       const balanceSeries = chartBalance.addSeries(
@@ -91,24 +92,34 @@
           function findDuplicates(arr) {
             const count = new Map();
 
-            // Подсчёт количества повторений для каждого time
             for (const item of arr) {
               count.set(item.time, (count.get(item.time) || 0) + 1);
             }
 
-            // Отбор объектов с дублирующимся time
             return arr.filter((item) => count.get(item.time) > 1);
           }
 
           const duplicates = findDuplicates(balance);
-          console.log(balance);
-          console.log(duplicates);
-          console.log(orders);
+          console.log("Duplicates in balance data:", duplicates);
+          console.log("orders", orders);
 
           candleSeries.setData(candles);
           trendSeries.setData(trend);
           balanceSeries.setData(balance);
-          // LightweightCharts.createSeriesMarkers(candleSeries, markers);
+          orders.forEach((order) => {
+            if (!order.openTime || !order.closeTime) return;
+
+            const line = chart.addSeries(LightweightCharts.LineSeries, {
+              color: order.closePrice >= order.openPrice ? "green" : "red",
+              lineWidth: 2,
+              priceLineVisible: false,
+            });
+
+            line.setData([
+              { time: order.openTime, value: order.openPrice },
+              { time: order.closeTime, value: order.closePrice },
+            ]);
+          });
           chartBalance.timeScale().fitContent();
         });
     </script>
